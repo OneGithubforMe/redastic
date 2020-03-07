@@ -1,0 +1,42 @@
+{% extends 'login_or_register_base.html' %}
+
+{% block head %}
+  <title>Login - Redastic.com</title>
+{% endblock head %}
+
+
+{% block content %}
+<div class="border p-4">
+  <form action="login" method="post" class="form-group">
+    {% csrf_token %}
+    <h3>Login</h3>
+    <label class="w-100">
+      <span>Email</span><br>
+      <input type="email" name="email" class="form-control d-inline" required>
+    </label>
+
+    <label class="w-100">
+      <span>Password</span> <br>
+      <input type="password" name="password" class="form-control"required>
+    </label>
+  
+    <a href="#" class="">Forget password</a>
+      <br><br>
+    <button class="btn btn-primary w-100">Login</button>
+  </form>
+
+    {% for message in messages %}
+    <div>
+      <p style="color: red"> {{ message }}</p>
+    </div>     
+    {% endfor %}
+  
+  <br>
+  <p class="text-center">New Here....</p>
+  <a href="register" class="btn btn-secondary w-100">Create an Account</a></p>
+  
+</div>
+
+
+
+{% endblock content %}

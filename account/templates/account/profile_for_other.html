@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-xl-2">
+
+    </div>
+
+    <div class="col-xl-9">  <!-- Profile Information -->
+    <div class="border p-4 mx-auto my-5">
+        <div class="row">
+            
+            <div class="col-xl-4">  <!-- user profile img-->
+                {% if user_info %}
+                <img src="{{media_url}}{{user_info.profile_picture}}" alt="Profile Picture" class="rounded-circle" height="200" width="200">
+                {% else %}
+                <!-- default user profile img -->
+                <img src="{{media_url}}{{user_info.profile_picture}}" alt="Default Profile Picture" class="rounded-circle" height="200" width="200">
+                {% endif %}
+            </div>
+            
+            <div class="col-xl-8">  <!-- user Profile Information -->
+                <h4 class="font-weight-bold">{{user.full_name}}</h4>
+                <p class="text-secondary">
+                    <span>Email : </span>        
+                    {% if user_info.is_email_verified %}
+                        <span class="text-success">verified</span>
+                    {% else %}
+                        <span class="text-danger">Not Verified</span>
+                    {% endif %}
+                </p>
+                <p class="text-secondary">
+                    <span>Phone Number : </span>        
+                    {% if user_info.is_phone_number_verified %}
+                        <span class="text-success">verified</span>
+                    {% else %}
+                        <span class="text-danger">Not Verified</span>
+                    {% endif %}
+                </p>
+
+                <a href="#" class="btn btn-primary">Get Contact Details</a>
+                <a href="#" class="btn btn-secondary">Share Profile</a>
+                <a href="#" class="btn btn-secondary">Report</a>
+
+            </div>
+        </div>
+    </div>
+
+    <br>
+    <br>
+
+
+    <div class="py-1">      <!--Owned products List-->
+        <h2 class="text-center py-4 font-weight-bold border-bottom">Products from {{user.full_name}}</h2>
+        
+        {% if not products %}
+            <div class="text-center mt-4">
+                <h4>
+                    <span>Don't Have Any Product...</span> 
+                </h4>
+            </div>
+        {% endif %}
+        
+        <!--List of Owned Products-->
+        {% for product, profile_img in products %}
+            <div class="row">
+                <div class="col-xl-4">      <!--product Profile Image-->
+                    <div>
+                        <a href="/product/view/{{product.id}}">
+                            <img src="{{profile_img.product_profile_img.url}}" alt="product-profile-image" class="mx-auto my-auto mw-100 d-block" height="215">
+                        </a>                
+                    </div>
+                </div>
+                <div class="col-xl-8">  <!--product details-->
+                    <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; ">
+                        <a href="/product/view/{{product.id}}" class="font-weight-bold text-dark" style="font-size: 18px;">{{product.title}}</a>
+                    </div>
+                    
+                    <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; ">
+                        <span class="text-secondary">{{product.description}}</span>
+                    </div>
+                    
+                    <div>   <!--₹ 100/month Rent -->
+                        <span>&#8377</span> 
+                        <span class="text-dark font-weight-bold" style="font-size: 30px;">{{product.rent_rate}}</span>
+                        <span>/</span>
+                        <span class="text-dark font-weight-bold" style="font-size: 18px;">{{product.rent_type}}</span>
+                    </div>
+                    <div>   <!--₹ 10000 Deposite -->
+                        <span> &#8377</span> 
+                        <span class="text-dark">{{product.deposit}} </span> 
+                        <span class="text-secondary">Security Deposite</span>
+                    </div>
+                    <br>    
+                    <!--Buttons-->
+                    <a href="/cart/add/{{product.id}}" class="mr-3">Save in Cart</a>
+                    <a href="" >Share</a>
+                </div>
+            </div>    
+            <hr>
+        {% endfor %}
+    </div>
+</div>
+</div>
+
+{% endblock content %}

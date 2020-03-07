@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+    <title>Update Product</title>
+{% endblock head %}
+
+
+{% block content %}
+
+<div class="row">
+    <div class="col-xl-3">
+
+    </div>
+
+    <div class="col-xl-6 p-5">
+        <h3 class="text-center font-weight-bold">Edit/Update Product</h3>
+
+{% for message in messages %}
+<div>
+    <p style="color: red"> {{ message }}</p>
+</div>     
+{% endfor %}
+
+        <form method="POST" action="" class="form-group" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% for field in details_form %}
+                {{ field.label }}
+                {{ field }}
+                <span class="help-inline">
+                    {% for error in  field.errors %}{{ error }}{% endfor %}
+                </span>
+                <br>
+            {% endfor %}
+            <br>
+        
+            <div class="border p-4">
+                <h3>Add up to 6 Images</h3>
+                <p>* min. 2 required</p>
+                <div class="row">
+                    <div class="col-xl-3"> <!-- vertical side bar for all the images -->
+                        <img src="{{profile_img.product_profile_img.url}}" alt="product-image" class="w-75 border m-1 p-1 btn" onmouseover="set_profile_img()">
+                        {% for img in imgs %}
+                            <img src="{{img.product_img.url}}" alt="product-image"  class="w-75 border m-1 p-1 btn" onmouseover="set_img(img = '{{img.product_img.url}}')">
+                        {% endfor %}
+                    </div>
+                    <div class="col-xl-9">  <!-- The Image which you will see in the center-->
+                        <div class="border p-2">
+                            <a href="" class="btn btn-success mx-3">Change</a>
+                            <a href="" class="btn btn-success mx-3">Remove</a>
+                            <a href="" class="btn btn-success mx-3">Add Image</a>
+                            <img src="{{profile_img.product_profile_img.url}}" id="product_img" class="w-100 d-block mt-3" alt="product-image">                            
+                        </div>
+                    </div>    
+                </div>
+            </div>
+            
+            <div class="p-3 border my-3">
+                <h4>Produt Available Nearby</h4>
+                {{ available_location_form.as_p }}
+            </div>
+            
+            <span onclick="getLocation()" style="cursor: pointer; border: 1px solid red">Get Your Current Location</span>
+            <br><br>
+            <button class="btn btn-success">Update Product</button>
+            <a href="/account/profile" class="btn btn-secondary">Cancel</a>
+        </form>
+        <br><br>    
+
+    </div>
+</div>
+
+{% endblock content %}
+
+
+
+{% block js %}
+<script>
+var longitude = document.getElementById("id_longitude");
+var latitude = document.getElementById("id_latitude");
+function getLocation() {
+    if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPosition);
+    } else { 
+    x.innerHTML = "Geolocation is not supported by this browser.";
+    }
+}
+
+function showPosition(position) {
+    longitude.value = position.coords.latitude;
+    latitude.value = position.coords.longitude;
+}
+
+product_img = document.getElementById("product_img");
+function set_img(img) {
+    product_img.src = img;
+}
+
+function set_profile_img() {    
+    product_img.src = "{{profile_img.product_profile_img.url}}";
+}
+</script> 
+{% endblock js %}
+
+
+
+
+

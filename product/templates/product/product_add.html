@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block head %}
+    <title>Add a Product</title>
+{% endblock head %}
+
+
+{% block content %}
+
+<div class="row">
+    <div class="col-xl-3 col-md-3">
+
+    </div>
+
+    <div class="col-xl-6 col-md-6 col-sm-12 col-12 p-5">
+        <h3 class="text-center font-weight-bold">POST A Product</h3>
+
+{% for message in messages %}
+<div>
+    <p style="color: red"> {{ message }}</p>
+</div>     
+{% endfor %}
+
+        <form method="POST" action="" class="form-group" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ img_forms.management_form }}
+            
+            {% for field in details_form %}
+                {{ field.label }}
+                {{ field }}
+                <span class="help-inline">
+                    {% for error in  field.errors %}{{ error }}{% endfor %}
+                </span>
+                <br>
+            {% endfor %}
+            <br>
+        
+            <div class="border p-4">
+                <h3>Add up to 6 Images</h3>
+                <p>* min. 2 required</p>
+                {{profile_img_form.as_p}}
+                {% for img_form in img_forms %}
+                    {{ img_form.as_p }}
+                {% endfor %}
+            </div>
+            
+            <h3>Produt Available Nearby</h3>
+            {{ available_location_form.as_p }}
+        
+            <span onclick="getLocation()" class="btn btn-warning">Get Your Current Location</span>
+            <br><br>
+            <button class="btn btn-success">Publish Product</button>
+            <button formaction="draft/" class="btn btn-secondary">Save as Draft</button>
+            <a href="/"  class="btn btn-secondary">Cancel</a>
+        </form>
+        <br><br>
+                
+
+    
+
+    </div>
+</div>
+
+{% endblock content %}
+
+
+
+{% block js %}
+<script>
+var longitude = document.getElementById("id_longitude");
+var latitude = document.getElementById("id_latitude");
+function getLocation() {
+    if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPosition);
+    } else { 
+    x.innerHTML = "Geolocation is not supported by this browser.";
+    }
+}
+
+function showPosition(position) {
+    longitude.value = position.coords.latitude;
+    latitude.value = position.coords.longitude;
+}
+</script> 
+{% endblock js %}

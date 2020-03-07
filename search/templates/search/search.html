@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Search Page</title>
+{% endblock head %}
+
+
+{% block content %}
+<div class="body mt-3">
+    <div class="row">
+        <div class="col-xl-2 col-lg-2 col-md-2 col-sm-12 col-12">
+            <div class="border-right">
+                <div class="list-of-applied-filters">
+                    <a href="/search/?search={{search}}">Remove All Filters</a>
+                </div>    
+                <br>
+
+                <div class="">      <!--category filter-->
+                    <span class="font-weight-bold">Category</span>
+                    {% for nav in navbar %}
+                    <form action="" method="get">
+                        <input type="hidden" value="{{search}}" name="search">
+                        <input type="hidden" value="{{nav}}" name="category">
+                        <button class="btn btn-link text-secondary py-0">{{nav}}</button>
+                    </form>
+                    {% endfor %}
+                </div>
+                <br>
+
+                <div class="">      <!--distance filter-->
+                    <span class="font-weight-bold ">Distance</span>
+                    <form action="" method="get">
+                        <input type="number" class="" value="{{distance}}" name="distance" placeholder="Within 5 Km" style="width: 90%">
+                        <input type="hidden" value="{{search}}" name="search">
+                        <input type="hidden" value="{{category}}" name="category">
+                        <input type="hidden" id ="id_longitude" name = "longitude">
+                        <input type="hidden" id ="id_latitude" name = "latitude">
+                    </form>
+                </div>
+                <br>
+
+                <div class="">      <!--price Filter-->
+                    <span class="font-weight-bold">Price</span>
+                    <form action="" method="get">
+                        <input type="number" placeholder="min Rs" class="mb-1" style="width: 90%">
+                        <input type="number" placeholder="max Rs" style="width: 90%">
+                    </form>
+                </div>
+                <br>
+
+                <div class="deposite-filter">
+                    <span class="font-weight-bold">Deposite</span>
+                    <form action="" method="get">
+                        <input type="number" placeholder="min" class="mb-1" style="width: 90%">
+                        <input type="number" placeholder="max" style="width: 90%">
+                    </form>
+                </div>
+
+            </div>        
+        </div>
+
+
+        <div class="col-xl-9 col-lg-9 col-md-9 col-sm-12 col-12">  
+            <div class="number-of-products-serach-result">
+                {% if not number_of_products %}
+                    <p class="text-secondary">No products for the search - "{{search}}"</p>
+                {% else %}
+                    <p class="text-secondary">About {{number_of_products}} products found</p>
+                {% endif %}
+            </div>
+            
+            <div class="sort-by">
+                <ul class="nav border-bottom py-0">
+                    <li class="nav-item py-0">
+                        <span class="nav-link disabled p-0 text-dark">Sort By:</span>
+                    </li>
+                    <li class="nav-item py-0">
+                        <a href="" class="nav-link py-0 text-secondary">Relevance</a>
+                    </li>
+                    <li class="nav-item py-0">
+                        <a href="" class="nav-link py-0 text-secondary">Price - Low to High</a>
+                    </li>    
+                    <li class="nav-item py-0">
+                        <a href="" class="nav-link py-0 text-secondary">Price - High to Low</a>
+                    </li>
+                    <li class="nav-item py-0">
+                        <a href="" class="nav-link py-0 text-secondary">Nearest First</a>
+                    </li> 
+                    <li class="nav-item py-0">
+                        <a href="" class="nav-link py-0 text-secondary">Newest First</a>
+                    </li>
+                </ul>
+            </div>
+            
+
+<div class="pt-3">          <!--showing search -results-->
+    {% for product, profile_img in products %}
+        <div class="row">
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+                <div>
+                    <a href="/product/view/{{product.id}}">
+                        <img src="{{profile_img.product_profile_img.url}}" alt="product-profile-image" class="mx-auto my-auto d-block mw-100" height="150">
+                    </a>                
+                </div>
+            </div>
+            <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 col-8">
+                <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; ">
+                    <a href="/product/view/{{product.id}}" class="font-weight-bold text-dark" style="font-size: 18px;">{{product.title}}</a>
+                </div>
+                <span class="text-secondary">By <a href="/account/profile/{{product.user.id}}">{{product.user.full_name}}</a></span>
+                
+                <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; ">
+                    <span class="text-secondary">{{product.description}}</span>
+                </div>
+                
+                <div>
+                    <span>&#8377</span> 
+                    <span class="text-dark font-weight-bold" style="font-size: 30px;">{{product.rent_rate}}</span>
+                    <span>/</span>
+                    <span class="text-dark font-weight-bold" style="font-size: 18px;">{{product.rent_type}}</span>
+                </div>
+                <div>
+                    <span> &#8377</span> 
+                    <span class="text-dark">{{product.deposit}} </span> 
+                    <span class="text-secondary">Security Deposite</span>
+                </div>
+                <br>
+                <a href="/cart/add/{{product.id}}">Save in Cart</a>
+            </div>
+        </div>    
+        <hr>
+    {% endfor %}
+</div>            
+
+
+
+        </div>
+    </div>
+</div>
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock content %}
+
+
+
+{% block js %}
+<script>
+    var longitude = document.getElementById("id_longitude");
+    var latitude = document.getElementById("id_latitude");
+    function getLocation() {
+        if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+        } else { 
+        x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+    }
+    
+    function showPosition(position) {
+        longitude.value = position.coords.latitude;
+        latitude.value = position.coords.longitude;
+    }
+</script>
+{% endblock js %}

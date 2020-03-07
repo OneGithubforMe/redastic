@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+    <title>Product Owner View</title>
+{% endblock head %}
+
+{% block content %}
+
+<br>
+
+<div class="row">
+    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 col-12">  <!--For the Images -->
+        <div style="position: sticky; top:10px;">
+            <div class="row">
+                <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col-3"> <!-- vertical side bar for all the images -->
+                    <img src="{{profile_img.product_profile_img.url}}" alt="product-image" class="w-75 border m-1 p-1 btn" onmouseover="set_profile_img()" onclick="set_profile_img()">
+                    {% for img in imgs %}
+                        <img src="{{img.product_img.url}}" alt="product-image"  class="w-75 border m-1 p-1 btn" onmouseover="set_img(img = '{{img.product_img.url}}')" onclick="set_img(img = '{{img.product_img.url}}')">
+                    {% endfor %}
+                </div>
+                <div class="col-xl-9 col-lg-9 col-md-9 col-sm-9 col-9">  <!-- The Image which you will see in the center-->
+                    <img src="{{profile_img.product_profile_img.url}}" id="product_img" class="mx-auto" alt="product-image" height="300" width="240">
+                </div>    
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">  <!--Details about the product -->
+        
+        <div class="text-secondary"> <!--We are here-->
+            <small>
+                <a href="/" class="text-secondary">Home</a>
+                <span>&gt;</span>
+                <a href="/{{product.category.category}}" class="text-secondary">{{product.category.category}}</a>
+            </small>
+        </div>
+        
+        <h3 class="font-weight-bold text-dark">{{product.title}}</h3>
+        <hr>
+        
+        <div> <!-- ₹ 1000/month Rent -->
+            <span>&#8377</span> 
+            <span class="text-dark font-weight-bold" style="font-size: 30px;">{{product.rent_rate}}</span>
+            <span>/</span>
+            <span class="text-dark font-weight-bold" style="font-size: 18px;">{{product.rent_type}}</span>
+        </div>
+
+        <div> <!--₹ 10000 Deposite -->
+            <span> &#8377</span> 
+            <span class="text-dark">{{product.deposit}} </span> 
+            <span class="text-secondary">Security Deposite</span>
+        </div>
+
+        <div>   <!-- Status - Public or Private-->
+            {% if not product.publish %}
+                <span class="font-weight-bold">Private  </span>  
+                <a href="/product/change_publish/{{product.id}}">change</a>
+            {% else %}
+                <span class="font-weight-bold">Public  </span>
+                <a href="/product/change_publish/{{product.id}}">change</a>
+            {% endif %}
+        </div>
+        <hr>
+        
+        <div>   <!-- product Description -->
+            <span class="font-weight-bold">About The Product</span><br>
+            <span  class="text-secondary">{{product.description}}</span>
+        </div>
+        <hr>
+        
+        <div>   <!-- Owner's Terms and Conditions -->
+            <span class="font-weight-bold">Terms and Conditions</span><br>
+            <span class="text-secondary">{{product.condition}}</span>
+        </div>
+        <hr>
+
+        <!-- Any Questions about the product -->
+    </div>
+    
+    <div class="col-xl-2 col-lg-2 col-md-6 col-sm-6 col-12">
+        <div class="mt-5" style="position: sticky; top: 30px">  <!-- buttons for Save in cart and Contact owner-->
+            <a href="/product/edit/{{product.id}}" class="btn btn-primary d-block">Edit Product Details</a>        
+            <br>
+            <a href="/product/delete/{{product.id}}" class="btn btn-primary d-block" >Delete</a>        
+            <br>
+            <a href="" class="btn btn-primary d-block" >Share</a>        
+        </div>
+    </div>
+
+</div>
+
+
+{% endblock content %}
+
+
+{% block js %}
+<script>
+    product_img = document.getElementById("product_img");
+    function set_img(img) {
+        product_img.src = img;
+    }
+
+    function set_profile_img() {    
+        product_img.src = "{{profile_img.product_profile_img.url}}";
+    }
+</script>
+{% endblock js %}
