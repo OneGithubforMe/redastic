@@ -1,9 +1,7 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseNotFound, Http404
-from django.contrib import messages
+from geopy.distance import distance as geopy_distance
 from django.db.models import Q
-from django.contrib.gis.geoip2 import GeoIP2
-from geopy.distance import geodesic 
+#from django.contrib.gis.geoip2 import GeoIP2
+#from geopy.distance import geodesic 
 
 
 from product.models import (
@@ -48,6 +46,48 @@ def get_all_the_products_list_profile_img(self, products_list):
     return imgs
 
 
+# distance of user form the product
+def get_all_the_products_list_distance(self, products_list, user_location):
+    all_distance = []
+    user_location = tuple(user_location)
+    for product in products_list:
+        available_location = product_available_location.objects.get(product = product.id)
+        product_location = []
+        product_location.append(float(available_location.latitude))
+        product_location.append(float(available_location.longitude))
+        product_location = tuple(product_location)
+
+        distance = geopy_distance(user_location, product_location)
+        distance = round(distance.km)
+        all_distance.append(distance)
+
+    return all_distance
+
+
+
+
+def filtered_get_all_the_products_list_distance(self, products_list, user_location, max_distance):
+    all_distance = []
+    user_location = tuple(user_location)
+    for product in products_list:
+        available_location = product_available_location.objects.get(product = product.id)
+        product_location = []
+        product_location.append(float(available_location.latitude))
+        product_location.append(float(available_location.longitude))
+        product_location = tuple(product_location)
+
+        distance = geopy_distance(user_location, product_location)
+        distance = round(distance.km)
+        if distance <= max_distance :
+            products_list.remove(product)
+            continue
+        all_distance.append(distance)
+
+    return all_distance
+
+
+
+'''
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -73,3 +113,5 @@ def get_the_distance_between_customer_and_owner(self, products_list, customer_lo
 
         distances.append(distance)
     return distances
+
+'''

@@ -18,6 +18,18 @@
     <!-- Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script> 
     
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-163710717-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-163710717-1');
+    </script>
+    -->
+
     {% block head %}
         
     {% endblock head %}
@@ -32,9 +44,11 @@
         <div class="col-xl-4  col-lg-4 col-md-12 col-sm-12 col-12">
             <div class="mx-auto">
                 <h1 class="text-center"><a href="/"><span class="font-weight-bold">REDASTIC</span>.com</a></h1>
-                {% block content %}
-                    <h1>The content of the page</h1>
-                {% endblock %}    
+                <div class="border p-4">
+                    {% block content %}
+                        
+                    {% endblock %}    
+                </div>
             </div>
         </div>
     </div>

@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+    <title>Home Page</title>
+{% endblock head %}
+
+
+{% block content %}    
+
+<div class="border my-2 d-none d-xl-block d-md-block" style="position: relative;">
+      <img src="{% static 'img/home/home_page_banner.webp'%}" alt="My image" class="w-100">
+      <div style="position: absolute; bottom:13px; right:20px; ">      
+        <a href="/account/register" class="btn btn-success"> Add Product for Rent</a>
+      </div>  
+</div>
+
+<div class="row">
+  <div class="col-xl-3">
+  </div>
+
+  <div class="col-xl-5">
+    <img src="{%static 'img/home/redastic.webp' %}" class="mw-100 mh-100">
+    <a href="#" class="float-right">learn more</a>
+  </div>
+</div>
+
+<br>
+
+<div id="id_index_page_content">
+  <!-- show the loading icon-->
+  <div class="spinner-border d-block mx-auto"></div>
+</div>
+
+<div class="row">
+  <div class="col-xl-2 col-lg-2"></div>
+  <div class="col-xl-8 col-lg-8">
+    <img src="{% static 'img/home/exchange-return-poli cy.webp' %}" class="img-fluid ">
+  </div>
+</div>
+
+
+{% endblock content %}
+
+
+
+
+
+
+{% block js %}
+<script>
+
+var lat, lng;
+
+$(document).ready(function() {
+    // check if the location session is available or not
+    {% if not request.session.location %}
+        set_location_in_session();
+    {% else %}
+      load_index_page_content();
+    {% endif %}
+});
+
+  
+function set_location_in_session(){
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            lat = position.coords.latitude;
+            lng = position.coords.longitude;
+
+            send_ajax_for_location_session();
+    }, showError);
+    } else {
+        //alert("Geolocation is not supported by this browser.");
+        get_location_with_ipinfo();
+    } 
+}
+
+
+    
+function get_location_with_ipinfo() {
+  $.get("https://ipinfo.io?token=8377350a09a701", function(response) {
+    var location = response.loc;
+    location = location.split(",");
+    lat = parseFloat(location[0]);
+    lng = parseFloat(location[1]);
+    send_ajax_for_location_session()
+  }, "jsonp")
+}
+
+
+
+
+function send_ajax_for_location_session(){
+    //alert(lat+","+lng)
+    $.ajax({
+        type: 'GET',
+        url: "{% url 'set_location_in_session'%}",
+        async: true,
+        data: {
+            latitude: lat,
+            longitude: lng,
+        },
+        success: function () {
+              load_index_page_content();          
+        },
+        error: function() {
+            alert("There is an error")
+        },         
+    });
+}
+
+
+function load_index_page_content(){
+  $("#id_index_page_content").load(
+        url = "{% url 'load_index_page_content' %}", 
+        data = {
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        },
+        //call back function
+        function(responseTxt, statusTxt, xhr){
+            if(statusTxt == "error")
+            alert("Error: " + xhr.status + ": " + xhr.statusText);
+    });
+}      
+
+
+
+    
+    
+// show error related to getting geolocation
+function showError(error) {
+  switch(error.code) {
+      case error.PERMISSION_DENIED:
+          //alert("User denied the request for Geolocation. Please Refresh the Page and allow location Access.");
+          get_location_with_ipinfo()
+          break;
+      case error.POSITION_UNAVAILABLE:
+          alert("Location information is unavailable.");
+          break;
+      case error.TIMEOUT:
+          alert("The request to get user location timed out.");
+          break;
+      case error.UNKNOWN_ERROR:
+          alert("An unknown error occurred.");
+          break;
+  }
+}
+    
+    
+</script>
+{% endblock js %}

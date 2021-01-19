@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
+from geopy.distance import distance as geopy_distance
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from itertools import chain
 from django.conf import settings
 from django.forms import formset_factory, modelformset_factory
+from django.core.files.storage import FileSystemStorage
 
 from .forms import (
     product_details_form,
@@ -12,26 +15,26 @@ from .forms import (
     product_available_location_form,
     RequiredFormSet,
     product_profile_img_form,
+    product_question_form,
+    answer_form,
 )
 from .models import (
     product_details,
     product_available_location,
     product_img,
     product_profile_img,
+    product_question,
+    answer,
 )
 
+#from extra_function.for_all_apps import check_for_location_session
 
 
 
 
 
-
-#@login_required
+@login_required(login_url='/account/login/')
 def add_product(request):
-    if not request.user.is_authenticated:
-        messages.info(request, "You have to login or Sign-up to add a product")
-        return redirect("/account/login")
-
 
     img_formset = formset_factory(product_img_form, formset=RequiredFormSet, extra=5, max_num = 5)
     
@@ -50,13 +53,13 @@ def add_product(request):
                 messages.info(request, "problem in location")
             return redirect("/product/add")    
         
-        # required min - one pictures
-        i = 0
-        for img_form in img_forms:
-            i = i+1
-            if (not img_form.is_valid()) and i<=1:
-                messages.info(request, 'Minimum 2 product-images are required')
-                return redirect("/product/add")
+        # required min - zero pictures
+        # i = 0
+        # for img_form in img_forms:
+        #     i = i+1
+        #     if (not img_form.is_valid()) and i<=1:
+        #         messages.info(request, 'Minimum 2 product-images are required')
+        #         return redirect("/product/add")
 
 
         details_form.instance.publish = True
@@ -73,7 +76,7 @@ def add_product(request):
             img_form.customSave(product_id)
         
         messages.info(request, 'Product Added SuccessFully')
-        return redirect("/")
+        return redirect("/product/view/"+str(product_id))
 
     details_form             = product_details_form()
     img_forms                = img_formset()
@@ -96,7 +99,7 @@ def add_product(request):
 
 
  
-@login_required         # add a prodcut in draft
+@login_required(login_url='/account/login/')
 def add_product_draft(request):
     img_formset = formset_factory(product_img_form, formset=RequiredFormSet, extra=6, max_num = 6)
 
@@ -142,6 +145,7 @@ def add_product_draft(request):
 
 
 
+@login_required(login_url='/account/login/')
 def change_publish_draft(request, product_id):
     product = get_object_or_404(product_details, pk = product_id)
 
@@ -161,8 +165,7 @@ def change_publish_draft(request, product_id):
  
 
 
- 
-@login_required
+@login_required(login_url='/account/login/')
 def product_edit(request, product_id):
     
     product = get_object_or_404(product_details, id = product_id)
@@ -175,8 +178,8 @@ def product_edit(request, product_id):
     # img_formset             = formset_factory(product_img_form, extra=5, max_num=5)
     
     available_location  = product_available_location.objects.get(product=product)
-    profile_img         = product_profile_img.objects.get(product = product)
-    imgs                = product_img.objects.filter(product = product)
+    #profile_img         = product_profile_img.objects.get(product = product)
+    #imgs                = product_img.objects.filter(product = product)
 
     details_form             = product_details_form(request.POST or None, instance= product)
     available_location_form  = product_available_location_form(request.POST or None, instance=available_location)
@@ -190,15 +193,15 @@ def product_edit(request, product_id):
         available_location_form.save()
 
         messages.info(request, "edit")
-        return redirect("/product/edit/"+str(product_id))
+        return redirect("/product/view/"+str(product_id))
 
 
     context = {
-        'imgs'                  : imgs,
-        'profile_img'           : profile_img,
+        #'imgs'                  : imgs,
+        #'profile_img'           : profile_img,
         'details_form'          : details_form,
         'available_location_form': available_location_form,
-        'media_url'             : settings.MEDIA_URL, 
+        #'media_url'             : settings.MEDIA_URL, 
     }
     template_name = "product/product_edit.html"
     return render(request, template_name, context)
@@ -208,9 +211,7 @@ def product_edit(request, product_id):
 
 
 
-
-
-@login_required
+@login_required(login_url='/account/login/')
 def product_delete(request, product_id):
 
     # function is in extra functions file
@@ -226,7 +227,7 @@ def product_delete(request, product_id):
 
     product.delete()
     messages.info(request, "Sucessfully Deleted")
-    return redirect('/')
+    return redirect('/account/profile')
 
 
 
@@ -234,20 +235,183 @@ def product_delete(request, product_id):
 
 
 def product_detail_view(request, product_id):
+    # get the product
     try :
-        product     = product_details.objects.get(id=product_id)
-        imgs        = product_img.objects.filter(product = product.id)
-        profile_img = product_profile_img.objects.get(product= product.id)
+        product             = product_details.objects.get(id=product_id)
+        imgs                = product_img.objects.filter(product = product.id)
+        profile_img         = product_profile_img.objects.get(product= product.id)
+        available_location  = product_available_location.objects.get(product= product.id)
     except:
         raise Http404("No Product Exist")
-    
+
+ 
+    # get all the question and answer for the product
+    #question_form = product_question_form()
+    all_question_and_answer = []
+    one_question_answer = []
+    questions_obj   = product_question.objects.filter(product = product.id)
+    for question_obj in questions_obj:
+        try:
+            answer_obj = answer.objects.get(question = question_obj)
+        except:
+            answer_obj = None
+
+        one_question_answer = [question_obj, answer_obj]
+        all_question_and_answer.append(one_question_answer)
+        
+
     context = {
             "product"       : product,
             "imgs"          : imgs,
             "profile_img"   : profile_img,
+            "all_question_and_answer" : all_question_and_answer,
     }
-    if not request.user == product.user:
+
+    if "location" in request.session:
+        # distance of user form the product
+        user_location = request.session['location']
+        user_location = tuple(user_location)
+
+        product_location = []
+        product_location.append(float(available_location.latitude))
+        product_location.append(float(available_location.longitude))
+        product_location = tuple(product_location)
+
+        distance = geopy_distance(user_location, product_location)
+        distance = round(distance.km)
+        context["distance"] = distance
+
+
+
+    if not request.user == product.user:    
         template_name = "product/product_detail_view.html"
-    else :
-        template_name = "product/owner_detail_view.html" 
+
+    # when product owner is accessing the product details
+    else :  
+        number_of_imgs = len(imgs) + 1
+        context["number_of_imgs"] = number_of_imgs 
+        # if the number_of_imgs is more or equal to 6 then 'add more images' button will not show up.
+        template_name = "product/product_owner_detail_view.html"
     return render(request, template_name, context)
+
+
+
+
+@login_required(login_url='/account/login/')
+def ask_question(request, product_id):
+    if request.method == 'POST':
+        question = request.POST.get("question")
+        question = question.strip()
+        if(question == ""):
+            return redirect(request.META.get('HTTP_REFERER'))
+
+        product = product_details.objects.get(id = product_id)
+        product_question.objects.create(who_is_asking=request.user, product=product, question =  question)
+        return redirect(request.META.get('HTTP_REFERER'))
+
+        #form = product_question_form(request.POST)
+        #if form.is_valid():
+        #    question = form.cleaned_data["question"]
+        #    product = product_details.objects.get(id = product_id)
+        #    product_question.objects.create(product=product, question =  question)
+        #    return redirect(request.META.get('HTTP_REFERER'))
+
+
+
+@login_required(login_url='/account/login/')
+def delete_question(request, question_id):
+    question = product_question.objects.get(id=question_id)
+    if not request.user == question.who_is_asking :
+        messages.info(request, "You don't have permission to delete this Question")
+        return redirect(request.META.get('HTTP_REFERER'))
+    question.delete()
+    return redirect(request.META.get('HTTP_REFERER'))
+
+
+
+def answer_of_question(request, question_id):
+    if request.method == 'POST':
+        ans = request.POST.get("answer")
+        ans = ans.strip()
+        question = product_question.objects.get(id = question_id)
+        if(ans == ""):
+            return redirect(request.META.get('HTTP_REFERER'))
+
+        try :   
+            answer_obj = answer.objects.get(question=question)
+            # when user try to change his previous answer
+            answer_obj.answer = ans
+            answer_obj.save()
+        except: # question ans is not not the database so create new data
+            answer.objects.create(question=question, answer=ans)
+
+        return redirect(request.META.get('HTTP_REFERER'))
+
+        #form = answer_form(request.POST)
+        #if form.is_valid():
+        #    answer = form.cleaned_data["answer"]
+        #    question = product_question.objects.get(id = question_id)
+        #    answer.objects.create(question = question, answer = answer)
+        #    return redirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required(login_url='/account/login/')
+def delete_answer(request, answer_id):
+    answer_obj = answer.objects.get(id=answer_id)
+    if not request.user == answer_obj.question.product.user :
+        messages.info(request, "You don't have permission to delete this answer")
+        return redirect(request.META.get('HTTP_REFERER'))
+    answer_obj.delete()
+    return redirect(request.META.get('HTTP_REFERER'))
+
+
+
+
+
+def change_product_img(request, img_id):
+    if request.method == 'POST' and request.FILES['product_img']:
+        myfile = request.FILES['product_img']
+        fs = FileSystemStorage()
+        filename = fs.save(myfile.name, myfile)
+
+        change_img  = product_img.objects.get(id = img_id)
+        change_img.product_img = filename
+        change_img.save()
+        return redirect(request.META.get('HTTP_REFERER'))
+
+
+
+
+
+def remove_product_img(request, img_id):
+    if request.method == 'POST':
+        remove_img  = product_img.objects.get(id = img_id)
+        remove_img.delete()
+        return redirect(request.META.get('HTTP_REFERER'))
+
+
+def change_product_profile_img(request, img_id):
+    if request.method == 'POST' and request.FILES['product_profile_img']:
+        myfile = request.FILES['product_profile_img']
+        fs = FileSystemStorage()
+        filename = fs.save (myfile.name, myfile)
+
+        change_img  = product_profile_img.objects.get(id = img_id)
+        change_img.product_profile_img = filename
+        change_img.save()
+        return redirect(request.META.get('HTTP_REFERER'))
+
+
+def add_product_img(request, product_id):
+    if request.method == 'POST' and request.FILES['add_more_img']:
+        myfile = request.FILES['add_more_img']
+        fs = FileSystemStorage()
+        filename = fs.save (myfile.name, myfile)
+
+        product_img.objects.create(product=product_details.objects.get(id=product_id), product_img = filename)
+        return redirect(request.META.get('HTTP_REFERER'))
+
+
+
+
+

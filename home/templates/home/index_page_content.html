@@ -1,0 +1,32 @@
+<div class="border my-3 px-3">    <!-- List of  Products that  are near by me as well just published -->
+    <div class="pt-2 ">
+      <h3><span class="font-weight-bold text-secondary">Available Products in nearby </span><small class="float-right"><a href="#">see more</a></small></h3>
+    </div>
+    <div class="clearfix"> <!-- List of Products-->
+      {% if not products %}
+        <div class="m-5">
+          <h2 class="text-center">There is No Product Available <a href="/product/add" class="btn btn-warning"> Add an Item</a></h2>
+        </div>
+      {% else %}
+        {% for product, profile_img in products %}
+        <div class="float-left border m-1 p-1" style="width: 200px; height: 300px;">
+          <a href="/product/view/{{product.id}}" class=" text-secondary">
+            <div>
+              <img src="{{profile_img.product_profile_img.url}}" alt="product-profile-image" class="mx-auto my-auto d-block w-100" height="180">
+            </div>
+            <div>
+              <div style="display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; ">
+                <span class="text-dark"><small>{{product.title}}</small></span>            
+              </div>
+              <span><span>&#8377;</span><span class="font-weight-bold">{{product.rent_rate}}/{{product.rent_type}}</span>
+              <br>
+              <span><span>&#8377;</span>{{product.deposit}} security</span>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+      
+  </div>
+  

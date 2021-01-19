@@ -17,20 +17,48 @@ from product.models import (
     product_details,
     product_profile_img,
 )
+from cart.models import cart
+
+
+
+
 
 
 
 
 def login(request):
     if request.user.is_authenticated:
-        return redirect("/")
+        return redirect(request.META.get('HTTP_REFERER'))
+        #return redirect("/")
+    
     if request.method == "POST":
         username = request.POST['email'].lower()
         password = request.POST['password']
         user = auth.authenticate(username = username, password=password)
         if user is not None:
             auth.login(request, user)
+            #return redirect(request.META.get('HTTP_REFERER'))
+
+            # successfully login so if there is any product in 'cart_session' then add then in the cart of user
+            if "cart" in request.session :
+                session_cart = request.session["cart"]
+                for product_id in session_cart:
+                    try :               
+                        criterion1 = Q(user=request.user)
+                        criterion2 = Q(product = product_id)
+                        cart.objects.get(criterion1 & criterion2)
+                        continue
+                    except:
+                        # you can't add your own prodcut in cart as well as for buy_now
+                        product = product_details.objects.get(id = product_id)
+                        
+                    if product.user == request.user:
+                        continue
+                    cart.objects.create(user = request.user, product = product)    
+                # delete the session after adding it
+                del request.session["cart"]
             return redirect("/")
+        
         else:
             messages.info(request, 'invalid credentials')
             return redirect('/account/login')
@@ -44,7 +72,8 @@ def login(request):
 
 def register(request):
     if request.user.is_authenticated:
-        return redirect("/")
+        return redirect(request.META.get('HTTP_REFERER'))
+        #return redirect("/")
     
     if request.method == 'POST':
         full_name   = request.POST["full_name"].title()
@@ -69,7 +98,7 @@ def register(request):
         user = User.objects.create_user(email=email, password=password, full_name = full_name)
         user.save()
         messages.info(request, 'User Created successfully')
-        return redirect('/account/register')    
+        return redirect('/account/login')    
             
     else:    
         return render(request, 'account/register.html')
@@ -86,22 +115,21 @@ def logout(request):
 
 
 
-@login_required
+@login_required(login_url='/account/login/')
 def profile(request):       # Show the profile Date
     try:
         user_info = profile_information.objects.get(user=request.user)  
     except profile_information.DoesNotExist:
-        # if the user information doesn't exist then except will go    
-        if request.method == "POST":
-            my_form = profile_information_form(request.POST, request.FILES)
+                # if the user information doesn't exist then    
+        my_form = profile_information_form(request.POST or None, request.FILES or None)
+        if request.method == "POST":    # when user filled and submitted his data for the first time
             if my_form.is_valid():
                 my_form.instance.user = request.user
                 my_form.save()
                 messages.info(request, 'profile updated')
-                return redirect("/")
+                return redirect("/account/profile")
                     
-        my_form = profile_information_form()
-        return render(request, 'account/update_profile.html', {"form": my_form})    
+        return render(request, 'account/edit_profile.html', {"form": my_form})    
 
 
     # list of all owned products by user 
@@ -139,6 +167,10 @@ def profile(request):       # Show the profile Date
 
 
 
+
+
+
+
 def profile_for_other(request, user_id):
     
     if request.user.id == user_id : 
@@ -155,7 +187,8 @@ def profile_for_other(request, user_id):
     # get the public products from the user
     criterion1 = Q(user = user)
     criterion2 = Q(publish = True)
-    products_list = product_details.objects.filter(criterion1 | criterion2)
+    products_list = product_details.objects.filter(criterion1 & criterion2)
+
 
     # profile img for all the owned products by the user
     imgs = []
@@ -180,6 +213,10 @@ def profile_for_other(request, user_id):
 
 
 
+
+
+
+@login_required(login_url='/account/login/')
 def edit_profile(request):
     try:
         user_info = profile_information.objects.get(user = request.user)
@@ -207,5 +244,6 @@ def edit_profile(request):
     context = {
         "info_form": info_form,
         "name_change_form" : name_change_form,
+        
     }
     return render(request, template_name, context)

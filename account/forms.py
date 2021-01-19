@@ -2,7 +2,7 @@ from django import forms
 from django.forms import BaseFormSet
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
-from .models import profile_information
+from .models import *
 
 User = get_user_model()
 
@@ -36,7 +36,7 @@ class UserAdminChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('full_name', 'email', 'password', 'active', 'admin')
+        fields = ('full_name', 'email', 'password', 'is_active', 'is_admin')
 
     def clean_password(self):
         # regardless of what the user provides, return the initial value
@@ -70,6 +70,8 @@ class full_name_change_form(forms.Form):
                         label="Your Name", 
                         required=True,
                         )
+
+
 
 
 class profile_information_form(forms.ModelForm):
@@ -115,3 +117,68 @@ class profile_information_form(forms.ModelForm):
 
 
 
+'''
+
+class user_phone_number_form(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        self.obj = kwargs.pop('obj', None)
+        super(user_phone_number_form, self).__init__(*args, **kwargs)
+        for visible in self.visible_fields():
+            visible.field.widget.attrs['class'] = 'form-control'
+
+
+    phone_number    = forms.CharField(
+                        widget=forms.NumberInput(
+                            attrs= {
+                                "placeholder": "+91-"
+                            }
+                        ),
+                        label="Phone Number", 
+                        required=True,
+                        # max_length=10,
+                        )
+        
+    class Meta:
+        model = user_phone_number
+        fields = [
+            'phone_number'
+            ]
+
+    def clean_phone_number(self, *args, **kwargs):
+        phone_number = self.cleaned_data.get("phone_number")
+        if not phone_number.isnumeric() or not len(phone_number)==10 :
+            print("it's a validation error")
+            raise forms.ValidationError("Not a valid phone number")
+        return phone_number
+
+    
+
+
+
+
+class user_profile_picture_form(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.obj = kwargs.pop('obj', None)
+        super(user_profile_picture_form, self).__init__(*args, **kwargs)
+        for visible in self.visible_fields():
+            visible.field.widget.attrs['class'] = 'form-control'
+
+
+    profile_picture = forms.ImageField(label="Profile Picture")
+
+    class Meta:
+        model = user_profile_picture
+        fields = [
+            'profile_picture',
+            ]
+
+    def clean_profile_picture(self, *args, **kwargs):
+        data = self.cleaned_data.get('profile_picture')
+        if not data:
+            data = self.obj.profile_picture
+        return data
+
+
+
+'''

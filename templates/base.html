@@ -1,9 +1,8 @@
-{% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
      <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
@@ -17,13 +16,81 @@
     <!-- Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script> 
     
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-163710717-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-163710717-1');
+    </script>
+    -->
+
     {% block head %}
         <title>This is base</title>
     {% endblock head %}
 
+<!-- style only for snackbar-->
+<style>     
+#snackbar {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 2px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    bottom: 30px;
+    font-size: 17px;
+}
+
+#snackbar.show {
+    visibility: visible;
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;} 
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;} 
+    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+    </style>
+
+
 </head>
 <body>
-    <div class="container-fluid pt-4">
+    <div id="snackbar" style="z-index: 2;"></div> <!-- SanckBar for displaying some status -->
+    <!--
+        How to call Snackbar(add this code into script) ->
+            var x = document.getElementById("snackbar");
+            x.innerHTML = "message";
+            x.className = "show";
+            setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+    -->
+
+    <div class="container-fluid pt-2">
         
         <div class="row">   
             <div class="col-xl-3 col-md-12 col-sm-12 col-12 my-1">
@@ -41,18 +108,16 @@
                     </div>
                 </form>
             </div>
+
             <div class="col-xl-3 col-md-12 col-sm-12 col-12 my-1">
-                
-                {% if user.is_authenticated %}
-                    <a href="/product/add" class="btn btn-outline-primary">Add</a>
-                    <a href="/cart/view" class="btn btn-outline-primary">Cart</a>
+                <a href="/product/add" class="btn btn-outline-primary">Add</a>
+                <a href="/cart/view" class="btn btn-outline-primary">Cart<span class="badge badge-danger" id="id_number_of_items_in_cart" style="vertical-align: top;"></span></a>
+                {% if request.user.is_authenticated %}
                     <a href="/account/profile" class="btn btn-outline-primary">Profile</a>
                     <a href="/account/logout" class="btn btn-outline-primary">Logout</a>
                 {% else %}
-                    <a href="/product/add" class="btn btn-outline-primary">Add</a>
-                    <a href="/cart/view" class="btn btn-outline-primary">Cart</a>
                     <a href="/account/login" class="btn btn-outline-primary">Login</a>
-                    <a href="/account/register" class="btn btn-outline-primary">Resister</a>
+                    <a href="/account/register" class="btn btn-outline-primary">Register</a>
                 {% endif %}
                 <hr>
             </div>
@@ -62,7 +127,7 @@
         <ul class="nav nav-tabs">
             {% for nav in navbar %}
             <li class="nav-item">
-                <a href="/{{nav.id}}" class="nav-link text-dark">{{nav}}</a>
+                <a href="/category/{{nav.id}}" class="nav-link text-dark">{{nav}}</a>
             </li>
             {% endfor %}
         </ul>
@@ -74,58 +139,28 @@
 
     </div>
 
-
-    <div style="position: fixed; bottom: 30px; right: 20px; z-index: 1;">       <!--Give us the Feedback-->
-        <button type="button" class="btn btn-primary font-weight-bold" data-toggle="modal" data-target="#myModal">
-            Feedback
-        </button>
-        
-    </div>
-
-
-    <div class="container">     <!-- Feedback Popup-->
-        <!-- The Modal -->
-        <form action="/feedback" method="POST" class="form-group">
-        {% csrf_token %}
-        <div class="modal fade" id="myModal">
-          <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-            
-              <!-- Modal Header -->
-              <div class="modal-header">
-                <h4 class="modal-title">Give us your valueable Feedback</h4>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-              </div>
-              
-              <!-- Modal body -->
-              <div class="modal-body">
-                {% if not request.user.is_authenticated %}
-                    <input type="text" placeholder="E-mail ID (optional)" class="form-control" name="feedback_email"> 
-                    <br>
-                {% endif %}
-                <textarea class="form-control" placeholder="Your Feedback" name="feedback" required></textarea>
-              </div>
-              
-              <!-- Modal footer -->
-              <div class="modal-footer">
-                <button class="btn btn-success">Continue</button>
-              </div>
-              
-            </div>
-          </div>
-        </div>
-        </form>
-    </div>
-      
-
-
-
-
+    {% include 'feedback.html' %}
 
     {% include 'footer.html' %}
+    
+    
+    <script>
+        /*
+            $.get(
+                url = "{% url 'get_number_of_items_in_cart' %}",
+                function(response) {
+                    alert(document.getElementById("#id_number_of_items_in_cart"))
+
+                    if(response.number_of_items_in_cart)
+                        alert(response.number_of_items_in_cart)
+                }
+            )
+        */
+    </script>
     
     {% block js %}
     
     {% endblock js %}
+    
 </body>
 </html>

@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Search Page</title>
+    
+    <style>
+        @media (min-width: 768px) {
+            .collapse.dont-collapse-sm {
+                display: block;
+                height: auto !important;
+                visibility: visible;
+            }
+            }
+    </style>
+{% endblock head %}
+
+
+{% block content %}
+<div class="body mt-3">
+    <div class="row">
+        <div class="col-xl-2 col-lg-2 col-md-2 col-sm-12 col-12">
+            
+            <button class="btn btn-outline-dark hidden visible-xs w-75" type="button" data-toggle="collapse" data-target="#id_collapse_filter" aria-expanded="false" aria-controls="id_collapse_filter">
+                Filters
+              </button>
+
+            
+            <div class="border-right collapse dont-collapse-sm" id="id_collapse_filter">      <!-- All The Filters-->
+                <div class="category_filter">      <!--category filter-->
+                    <span class="font-weight-bold">Category</span>
+                    {% for nav in navbar %}
+                        <label class='text-secondary d-block my-0'><input type="checkbox" class="class_filter_all class_filter_category" value="{{nav}}"> {{nav}}</label>
+                    {% endfor %}
+                </div>
+                <br>
+                
+                <div class="rent_type_filter">      <!--Rent type Filter-->
+                    <span class="font-weight-bold">Rent Type</span><br>
+                    <label class='text-secondary my-0'><input type="checkbox" class="class_filter_all class_rent_type_filter" value="day"> day</label>
+                    <br>
+                    <label class='text-secondary my-0'><input type="checkbox" class="class_filter_all class_rent_type_filter" value="week"> week</label>
+                    <br>
+                    <label class='text-secondary my-0'><input type="checkbox" class="class_filter_all class_rent_type_filter" value="month"> month</label>
+                    <br>
+                    <label class='text-secondary my-0'><input type="checkbox" class="class_filter_all class_rent_type_filter" value="year"> year</label>
+                </div>
+                <br>
+
+                <div class="deposit-filter">        <!-- Deposit filter -->
+                    <span class="font-weight-bold">Deposit</span>
+                    <form id="id_filter_deposit_form">
+                        <input type="number" id="id_filter_min_deposit" placeholder="min Rs" class="w-75" min="1">
+                        <input type="number" id="id_filter_max_deposit" placeholder="max Rs" class="my-1 w-75" min="1">
+                        <button class="btn btn-secondary d-block w-75">Apply</button>
+                    </form>
+                </div>
+
+            </div>        
+        </div>
+
+
+
+
+<div class="col-xl-9 col-lg-9 col-md-9 col-sm-12 col-12">  
+        <!-- Show the messages here -->
+    <div>
+        {% for message in messages %}
+            <p style="color: red"> {{ message }}</p>
+        {% endfor %}
+    </div>
+
+
+    <div class="sort-by">   <!-- Sort-By -->
+        <ul class="nav border-bottom py-0">
+            <li class="nav-item py-0">
+                <span class="btn disabled py-0 text-dark">Sort By:</span>
+            </li>
+            <li class="nav-item py-0">
+                <span class="class_sort_by btn btn-link py-0 text-secondary font-weight-bold">Near-By First</span>
+            </li>
+            <li class="nav-item py-0">
+                <span class="class_sort_by btn btn-link py-0 text-secondary">Date Published</span>
+            </li>
+        </ul>
+    </div>
+    
+<div id="id_filter_result" class="pt-1">        <!-- Ajax request will replace the contenet within this div-->
+    <!-- show the loading icon-->
+    <div class="spinner-border d-block mx-auto"></div>
+    
+</div>  
+
+</div>
+</div>
+</div>
+
+
+{% endblock content %}
+
+
+
+{% block js %}
+<script>
+
+var sort_by = "Near-By First";
+
+$(document).ready(function() {          // to show checked to the current category
+    var all_category = document.getElementsByClassName('class_filter_category')
+    for(i=0; i<all_category.length; i++) {
+        if (all_category[i].value == "{{current_category}}") {
+            var att = document.createAttribute("checked");
+            att.value = true;   
+            all_category[i].setAttributeNode(att);
+        }
+    }
+    // check if the location session is available or not
+    {% if not request.session.location %}
+        set_location_in_session();
+    {% else %}
+        all_category_filter();
+    {% endif %}
+
+});
+
+
+function set_location_in_session(){
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            lat = position.coords.latitude;
+            lng = position.coords.longitude;
+            send_ajax_for_location_session();
+    }, showError);
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    /*
+        //using the IP
+        response = ipLookUp();
+        alert(response);
+    */
+    } 
+}
+
+
+function send_ajax_for_location_session(){
+    $.ajax({
+        type: 'GET',
+        url: "{% url 'set_location_in_session'%}",
+        async: true,
+        data: {
+            latitude: lat,
+            longitude: lng,
+        },
+        success: function () {
+             all_category_filter();          
+        },
+        error: function() {
+            alert("There is an error")
+        },         
+    });
+}
+
+
+
+
+$(".class_filter_all").click(function() {
+    all_category_filter();
+});
+
+$("#id_filter_deposit_form").submit(function() {
+    var min_deposit = $("#id_filter_min_deposit").val()
+    var max_deposit = $("#id_filter_max_deposit").val()
+
+    if(min_deposit != "" && max_deposit != "") {
+        min_deposit = parseInt(min_deposit)
+        max_deposit = parseInt(max_deposit)
+        if(min_deposit > max_deposit) {
+            alert("value error")
+            event.preventDefault();
+            return false;
+        }
+    }
+    else if(min_deposit == "" && max_deposit == "") {
+        alert("empty")
+        event.preventDefault();
+        return false;
+    }
+    
+    
+    // perform the search if the 
+    all_category_filter();
+
+    event.preventDefault();
+    return false;
+});
+
+
+
+function all_category_filter() {
+    // get the value of category filter
+    var all_category_filter = document.getElementsByClassName('class_filter_category')
+    var apply_these_category_filter = "";
+    var total_number_of_checkbox = $('input:checkbox.class_filter_category:checked').length
+    var i, number_of_added_checkbox = 1;
+    for(i=0; i<all_category_filter.length; i++) {
+        if (all_category_filter[i].checked) {
+            if(number_of_added_checkbox == total_number_of_checkbox) {
+                apply_these_category_filter += all_category_filter[i].value;
+            } else {
+                apply_these_category_filter += all_category_filter[i].value + ",";
+                number_of_added_checkbox++;
+            }
+        }
+    }
+
+    // get the values from rent_type values
+    var all_rent_type_filter = document.getElementsByClassName('class_rent_type_filter')
+    var apply_these_rent_type_filter = "";
+    var total_number_of_checkbox = $('input:checkbox.class_rent_type_filter:checked').length
+    var i, number_of_added_checkbox = 1;
+    for(i=0; i<all_rent_type_filter.length; i++) {
+        if (all_rent_type_filter[i].checked) {
+            if(number_of_added_checkbox == total_number_of_checkbox) {
+                apply_these_rent_type_filter += all_rent_type_filter[i].value;
+            } else {
+                apply_these_rent_type_filter += all_rent_type_filter[i].value + ",";
+                number_of_added_checkbox++;
+            }
+        }
+    }
+
+    // get the values for deposit 
+    var min_deposit = $("#id_filter_min_deposit").val()
+    var max_deposit = $("#id_filter_max_deposit").val()
+    
+    // send the value as ajax
+    $("#id_filter_result").load(
+        url = "{% url 'all_filter_in_category' %}", 
+        data = {
+            apply_these_rent_type_filter    : apply_these_rent_type_filter,
+            apply_these_category_filter     : apply_these_category_filter,
+            min_deposit                     : min_deposit,
+            max_deposit                     : max_deposit,
+            sort_by                         : sort_by,
+            csrfmiddlewaretoken             : '{{ csrf_token }}',
+        },
+        //call back function
+        function(responseTxt, statusTxt, xhr){
+            if(statusTxt == "error")
+            alert("Error: " + xhr.status + ": " + xhr.statusText);
+    });
+}
+
+
+
+
+
+
+
+
+
+
+$(".class_sort_by").click(function() {
+    if( ! this.classList.contains("font-weight-bold")) {
+        sort_by = this.innerHTML,
+
+        all_category_filter();
+
+        // remove the font-weight-bold class in other class elements
+        $(".class_sort_by").removeClass("font-weight-bold");
+        //Now add only in the current element
+        this.classList.add("font-weight-bold");
+    }
+});
+
+
+// show error related to getting geolocation
+function showError(error) {
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            alert("User denied the request for Geolocation. Please Refresh the Page and allow location Access.");
+            break;
+        case error.POSITION_UNAVAILABLE:
+            alert("Location information is unavailable.");
+            break;
+        case error.TIMEOUT:
+            alert("The request to get user location timed out.");
+            break;
+        case error.UNKNOWN_ERROR:
+            alert("An unknown error occurred.");
+            break;
+    }
+}
+
+
+</script>
+{% endblock js %}

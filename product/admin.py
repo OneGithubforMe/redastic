@@ -15,5 +15,6 @@ admin.site.register(product_img)
 admin.site.register(product_profile_img)
 #admin.site.register(product_owner_condition)
 admin.site.register(product_available_location)
-
+admin.site.register(product_question)
+admin.site.register(answer)
 

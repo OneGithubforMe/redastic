@@ -12,7 +12,6 @@
     <h4 class="font-weight-bold">Shopping Cart</h4>
 </div>
 <hr>
-
 {% if not products %}
 <div class="mx-5 px-5">
     <h5>Cart is Empty</h5>
@@ -66,14 +65,12 @@
             <span class="text-secondary">Security Deposite</span>
         </div>
         <br>
-        <a href="/cart/remove/{{product.id}}" class="btn btn-secondary">Remove from Cart</a>
-        <a href="" class="btn btn-primary">Contact Owner</a>
+        <a href="/cart/remove/{{product.id}}" class="btn btn-secondary" onclick="return confirm('Are You Sure?')">Remove from Cart</a>
     </div>
     
 </div>    
 <hr>
 {% endfor %}
 {% endif %}
-
 
 {% endblock content %}

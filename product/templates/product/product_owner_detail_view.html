@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+    <title>Product Owner View</title>
+{% endblock head %}
+
+{% block content %}
+
+{% for message in messages %}
+<div>
+    <p style="color: red"> {{ message }}</p>
+</div>     
+{% endfor %}
+
+
+<br>
+
+<div class="row">
+    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 col-12">  <!--For the Images -->
+        <h4>Product Images</h4>
+        <p class="text-secondary">*min 1 and max 6 images</p>
+        <div style="position: sticky; top:10px;">
+            <div class="float-left border p-1 m-1" style="width: 100px">
+                <div style="max-width: 100px; height:70px">
+                    <!-- show the profile image -->
+                    <img src="{{profile_img.product_profile_img.url}}" alt="product-profile-image"  max-height="100px" class="mw-100 mh-100 mx-auto my-auto d-block">
+                </div>
+                <!-- for changing the profile image request -->
+                <form action="/product/edit/cppi/{{profile_img.id}}" method="POST" enctype = "multipart/form-data" >
+                    <span class="btn btn-block">main</span>
+                    {% csrf_token %}
+                    <label class="btn btn-secondary btn-block">
+                        change
+                        <input type="file" name="product_profile_img" class="d-none" accept='image/*' onchange="this.closest('form').submit();return false;">
+                    </label>
+                </form>
+            </div>
+
+            <!-- Other images of the product -->
+            {% for img in imgs %}
+            <div class="border float-left p-1 m-1" style="width: 100px">
+                <div style="max-width: 100px; height:70px">
+                    <!-- Show the Image -->
+                    <img src="{{img.product_img.url}}" alt="product-image" max-height="100" class="mw-100 mh-100 d-block mx-auto my-auto">
+                </div>
+                <!-- for changing the image request -->
+                <form action="/product/edit/cpi/{{img.id}}" method="POST" enctype = "multipart/form-data" >
+                    {% csrf_token %}
+                    <label class="btn btn-secondary btn-block">
+                        change
+                        <input type="file" name="product_img" class="d-none" accept='image/*' onchange="this.closest('form').submit();return false;">
+                    </label>
+                </form>
+                <!-- Remove an image -->
+                <form action="/product/edit/rpi/{{img.id}}" method="POST">
+                    {% csrf_token %}
+                    <button class="btn btn-secondary btn-block" onclick="return confirm('Remove the Product Image');">Remove</a>
+                </form>
+            </div>
+        {% endfor %}                
+        <!-- This div.clearfix is to stop the float effect on further elements -->
+        <div class="clearfix"></div>
+
+        <!-- Add more images only if the number_of_imgs < 6 -->
+        {% if number_of_imgs < 6 %}
+            <form action="/product/edit/{{product.id}}/api" method="POST" enctype = "multipart/form-data" >
+                {% csrf_token %}
+                <label class="btn btn-secondary btn-block">
+                    Add more image
+                    <input type="file" name="add_more_img" class="d-none" accept='image/*' onchange="this.closest('form').submit();return false;">
+                </label>
+            </form>
+        {% endif %}
+        </div>
+    </div>
+
+
+
+
+
+
+    
+    <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">  <!--Details about the product -->
+        
+        <div class="text-secondary"> <!--We are here-->
+            <small>
+                <a href="/" class="text-secondary">Home</a>
+                <span>&gt;</span>
+                <a href="/category/{{product.category.id}}"" class="text-secondary">{{product.category.category}}</a>
+            </small>
+        </div>
+        
+        <h3 class="font-weight-bold text-dark">{{product.title}}</h3>
+        <hr>
+        
+        <div> <!-- ₹ 1000/month Rent -->
+            <span>&#8377</span> 
+            <span class="text-dark font-weight-bold" style="font-size: 30px;">{{product.rent_rate}}</span>
+            <span>/</span>
+            <span class="text-dark font-weight-bold" style="font-size: 18px;">{{product.rent_type}}</span>
+        </div>
+
+        <div> <!--₹ 10000 Deposite -->
+            <span> &#8377</span> 
+            <span class="text-dark">{{product.deposit}} </span> 
+            <span class="text-secondary">Security Deposite</span>
+        </div>
+
+        <div>   <!-- Status - Public or Private-->
+            {% if not product.publish %}
+                <span class="font-weight-bold">Private  </span>  
+                <a href="/product/change_publish/{{product.id}}">change</a>
+            {% else %}
+                <span class="font-weight-bold">Public  </span>
+                <a href="/product/change_publish/{{product.id}}">change</a>
+            {% endif %}
+        </div>
+        <hr>
+        
+        <div>   <!-- product Description -->
+            <span class="font-weight-bold">About The Product</span><br>
+            <span  class="text-secondary">{{product.description}}</span>
+        </div>
+        <hr>
+        
+        <div>   <!-- Owner's Terms and Conditions -->
+            <span class="font-weight-bold">Terms and Conditions</span><br>
+            <span class="text-secondary">{{product.condition}}</span>
+        </div>
+        <hr>
+
+        <!-- Any Questions about the product //      question and answer section -->
+        <div>
+            <span class="font-weight-bold">Question and Answers</span><br>
+                <!-- display all questions with my answers if exist -->
+            {% for question_and_answer in all_question_and_answer %}
+                <span>Q: </span><span class="text-secondary">{{question_and_answer.0.question}}</span><br>
+                <small>By <a href="/account/profile/{{question_and_answer.0.who_is_asking.id}}" class="text-secondary font-weight-bold">{{question_and_answer.0.who_is_asking.full_name}}</a></small>
+                <br>
+                {% if question_and_answer.1.answer %}
+                    <form action="/product/answer/{{question_and_answer.0.id}}" method="POST" class="form-group">
+                        {% csrf_token %}
+                        <input type="text" name="answer" value="{{question_and_answer.1.answer}}" class="form-control form-control-sm" placeholder="Your Answer">
+                        <input type="submit" value="update" class="btn btn-secondary btn-sm m-1">
+                        <a href="/product/answer/delete/{{question_and_answer.1.id}}" class="btn btn-secondary btn-sm m-1"  onclick="return confirm('Are you Sure?')">delete answer</a>
+                    </form>
+                {% else %}
+                    <form action="/product/answer/{{question_and_answer.0.id}}" method="POST" class="form-group">
+                        {% csrf_token %}
+                        <input type="text" class="form-control form-control-sm" name="answer" placeholder="Your Answer" required>
+                        <input type="submit" class="btn btn-secondary btn-sm m-1" value="answer">
+                    </form>
+                {% endif %}
+                <br>
+            {% endfor %}
+        </div>
+        <hr>
+    </div>
+    
+
+
+
+
+
+
+
+    <div class="col-xl-2 col-lg-2 col-md-6 col-sm-6 col-12">
+        <div class="mt-5" style="position: sticky; top: 30px">  <!-- buttons for Save in cart and Contact owner-->
+            <a href="/product/edit/{{product.id}}" class="btn btn-primary d-block">Edit Product Details</a>        
+            <br>
+            <a href="/product/delete/{{product.id}}" class="btn btn-primary d-block" onclick="return confirm('Are you Sure?');">Delete</a>        
+            <br>
+            <a href="" class="btn btn-primary d-block">Share</a>        
+        </div>
+    </div>
+
+</div>
+
+
+{% endblock content %}
+
+
+{% block js %}
+
+{% endblock js %}

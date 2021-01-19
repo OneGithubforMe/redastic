@@ -6,7 +6,7 @@ from django.contrib.auth.models import (
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, full_name, password=None, is_staff=False, is_admin=False, is_active=True):
+    def create_user(self, email, full_name, password=None, staff=False, admin=False, active=True):
         if not email:
             raise  ValueError("user must have an email address")
         if not password:
@@ -18,9 +18,9 @@ class UserManager(BaseUserManager):
             full_name = full_name
         )
         user_obj.set_password(password)     # change user password
-        user_obj.staff = is_staff
-        user_obj.admin = is_admin
-        user_obj.active = is_active
+        user_obj.is_staff = staff
+        user_obj.is_admin = admin
+        user_obj.is_active = active
         user_obj.save(using=self._db)
         return user_obj
 
@@ -29,7 +29,7 @@ class UserManager(BaseUserManager):
             email,
             full_name,
             password = password,
-            is_staff = True
+            staff = True
         )
         return user
     
@@ -39,8 +39,8 @@ class UserManager(BaseUserManager):
             email,
             full_name,
             password = password,
-            is_staff = True,
-            is_admin = True
+            staff = True,
+            admin = True
         )
         return user
     
@@ -52,9 +52,9 @@ class User(AbstractBaseUser):
     full_name       = models.CharField(verbose_name='full Name', max_length=255, blank=False, null=False)
     date_joined     = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
     last_login      = models.DateTimeField(verbose_name='last login', auto_now=True)
-    active          = models.BooleanField(default=True)
-    admin           = models.BooleanField(default=False)    # superuser
-    staff           = models.BooleanField(default=False)    # staff non superuser
+    is_active          = models.BooleanField(default=True)
+    is_admin           = models.BooleanField(default=False)    # superuser
+    is_staff           = models.BooleanField(default=False)    # staff non superuser
 
 
     USERNAME_FIELD  = 'email'
@@ -69,22 +69,11 @@ class User(AbstractBaseUser):
         return self.full_name
 
     def has_perm(self, perm, obj=None):
-        return self.admin
+        return self.is_admin
 
     def has_module_perms(self, app_label):
-        return self.admin
+        return self.is_admin
 
-    @property
-    def is_staff(self):
-        return self.staff
-
-    @property
-    def is_admin(self):
-        return self.admin    
-
-    @property
-    def is_actice(self):
-        return self.active
 
 
 class profile_information(models.Model):                    
@@ -98,5 +87,22 @@ class profile_information(models.Model):
     def __str__(self):  
         return self.phone_number
     
-    def get_user_img(self):
-        return self.profile_picture
+''' 
+
+class user_profile_picture(models.Model):
+    user                        = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
+    profile_picture             = models.ImageField(upload_to="pics/account/profile_picture", verbose_name='Profile Picture', default='default/user_default_img.jpg')     #
+
+
+class user_phone_number(models.Model):
+    user                        = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
+    phone_number                = models.CharField(verbose_name='phone number', max_length=10)   # change this
+    is_phone_number_verified    = models.BooleanField(default=False)          # via OTP
+
+
+class user_verified_email(models.Model):         # eamils are verified                   
+    user                        = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
+    is_user_email_verified      = models.BooleanField(default=False)          # via OTP
+
+
+'''

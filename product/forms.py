@@ -123,6 +123,7 @@ class product_available_location_form(forms.ModelForm):
 
 
 class product_question_form(forms.ModelForm):
+    
     class Meta:
         model = product_question
         fields = ['question']

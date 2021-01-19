@@ -13,6 +13,7 @@
         <div class="border my-5 p-4">
             <h3 class="font-weight-bold text-center">Edit Profile Info</h3>
             <br>
+                
             {% for message in messages %}
                 <p style="color: red"> {{ message }}</p>    
             {% endfor %}
@@ -31,6 +32,8 @@
                 <br>
             {% endfor %}
 
+                <!-- When user filling his details for the first time -->
+                {{form.as_p}}
                 
                 <button class="btn btn-success">Update</button>
                 <a href= "/account/profile" class="btn btn-secondary">Cancel</a>

@@ -38,9 +38,7 @@ class product_profile_img(models.Model):
     product     = models.OneToOneField(product_details, on_delete=models.CASCADE)
     product_profile_img = models.ImageField(upload_to='pics/add_product/product_img', null = False, blank = False, verbose_name='Product Profile Image',)
     
-    def __str__(self):
-        return self.product.title
-
+    
 
 
 
@@ -63,11 +61,20 @@ class product_available_location(models.Model):
 
 
 class product_question(models.Model):
-    product = models.ForeignKey(product_details, on_delete=models.CASCADE)
-    question = models.CharField(max_length=100)
-
+    who_is_asking       = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    product             = models.ForeignKey(product_details, on_delete=models.CASCADE)
+    question            = models.CharField(max_length=100)
+    question_time       = models.DateTimeField(auto_now_add=True)
+    last_edit_time      = models.DateTimeField(auto_now=True)
+    
 
 
 class answer(models.Model):
-    question = models.ForeignKey(product_question, on_delete=models.CASCADE)
-    answer = models.CharField(max_length=255)
+    question        = models.ForeignKey(product_question, on_delete=models.CASCADE)
+    answer          = models.CharField(max_length=255)
+    answer_time     = models.DateTimeField(auto_now_add=True)
+    last_edit_time  = models.DateTimeField(auto_now=True)
+    
+
+
+

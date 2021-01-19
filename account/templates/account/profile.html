@@ -15,7 +15,7 @@
     <div class="col-xl-9">
     <div class="profile-information border p-4 mx-auto my-5">
         <div class="row">
-            <div class="col-xl-4">
+            <div class="col-xl-4">  <!-- user Prfo-->
                 <img src="{{media_url}}{{user_info.profile_picture}}" alt="Profile Picture" class="rounded-circle" height="200" width="200">
             </div>
             <div class="col-xl-8">
@@ -37,7 +37,7 @@
                     {% endif %}
                 </p>
 
-                <a href="#" class="btn btn-secondary">Change Password</a>
+                <a href="{% url 'password_change' %}" class="btn btn-secondary">Change Password</a>
                 <a href="/account/edit_profile" class="btn btn-secondary">Edit Details</a>
 
             </div>
@@ -102,8 +102,8 @@
                     <br>    
                     <!--Buttons-->
                     <a href="" class="btn btn-secondary">Share</a>
-                    <a href="/product/edit" class="btn btn-secondary">Edit Product</a>
-                    <a href="/product/delete/{{product.id}}" class="btn btn-secondary">Delete</a>
+                    <a href="/product/edit/{{product.id}}" class="btn btn-secondary">Edit Product</a>
+                    <a href="/product/delete/{{product.id}}" class="btn btn-secondary"  onclick="return confirm('Are you Sure?');">Delete</a>
                 </div>
             </div>    
             <hr>

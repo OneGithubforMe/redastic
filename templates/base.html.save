@@ -1,0 +1,129 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script> 
+    
+    {% block head %}
+        <title>This is base</title>
+    {% endblock head %}
+
+</head>
+<body>
+	<p>
+    <div class="container-fluid pt-4">
+        
+        <div class="row">   
+            <div class="col-xl-3 col-md-12 col-sm-12 col-12 my-1">
+                <h1><a href="/"><span class="font-weight-bold">REDASTIC</span>.com</a></h1>
+            </div>
+            <div class="col-xl-6 col-md-12 col-sm-12 col-12  my-1">
+                <form class="w-100" action="/search/" method="GET">
+                    <div class="row">
+                        <div class="col-xl-10 col-md-10 col-sm-9 col-9 px-0">
+                            <input type="text" name="search" value="{{search}}"  class= "form-control" placeholder="Search.....">
+                        </div>
+                        <div class="col-xl-2  col-md-2 col-sm-3 col-3 px-0">
+                            <button class=" btn btn-primary">SEARCH</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-xl-3 col-md-12 col-sm-12 col-12 my-1">
+                <a href="/product/add" class="btn btn-outline-primary">Add</a>
+                <a href="/cart/view" class="btn btn-outline-primary">Cart</a>    
+                {% if request.user.is_authenticated %}
+                    <a href="/account/profile" class="btn btn-outline-primary">Profile</a>
+                    <a href="/account/logout" class="btn btn-outline-primary">Logout</a>
+                {% else %}
+                    <a href="/account/login" class="btn btn-outline-primary">Login</a>
+                    <a href="/account/register" class="btn btn-outline-primary">Resister</a>
+                {% endif %}
+                <hr>
+            </div>
+        </div>
+        
+    
+        <ul class="nav nav-tabs">
+            {% for nav in navbar %}
+            <li class="nav-item">
+                <a href="/{{nav.id}}" class="nav-link text-dark">{{nav}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+        
+    
+        {% block content %}
+            <h1>The content of the page</h1>
+        {% endblock %}
+
+    </div>
+
+
+    <div style="position: fixed; bottom: 30px; right: 20px; z-index: 1;">       <!--Give us the Feedback-->
+        <button type="button" class="btn btn-primary font-weight-bold" data-toggle="modal" data-target="#myModal">
+            Feedback
+        </button>
+        
+    </div>
+
+
+    <div class="container">     <!-- Feedback Popup-->
+        <!-- The Modal -->
+        <form action="/feedback" method="POST" class="form-group">
+        {% csrf_token %}
+        <div class="modal fade" id="myModal">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h4 class="modal-title">Give us your valueable Feedback</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+              </div>
+              
+              <!-- Modal body -->
+              <div class="modal-body">
+                {% if not request.user.is_authenticated %}
+                    <input type="email" placeholder="E-mail ID (optional)" class="form-control" name="feedback_email"> 
+                    <br>
+                {% endif %}
+                <textarea class="form-control" placeholder="Your Feedback" name="feedback" required></textarea>
+              </div>
+              
+              <!-- Modal footer -->
+              <div class="modal-footer">
+                <button class="btn btn-success">Continue</button>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+        </form>
+    </div>
+      
+
+
+
+
+
+    {% include 'footer.html' %}
+    
+    {% block js %}
+    
+    {% endblock js %}
+</body>
+</html>

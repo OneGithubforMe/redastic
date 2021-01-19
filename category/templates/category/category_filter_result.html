@@ -1,0 +1,45 @@
+<div class="number-of-products-serach-result">
+    {% if not number_of_products %}
+        <p class="text-secondary"><strong>No products</strong> for the search - "{{search}}"</p>
+    {% else %}
+        <p class="text-secondary">About {{number_of_products}} products found</p>
+    {% endif %}
+</div>
+
+
+{% for product, profile_img, distance in products %}
+    <div class="row">
+        <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
+            <div>
+                <a href="/product/view/{{product.id}}" target="_blank">
+                    <img src="{{profile_img.product_profile_img.url}}" alt="product-profile-image" class="mx-auto my-auto d-block mw-100" height="150">
+                </a>                
+            </div>
+        </div>
+        <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 col-8">
+        <small class="text-secondary">about <strong>{{distance}}km</strong> away</small>
+            <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; ">
+                <a href="/product/view/{{product.id}}" target="_blank" class="font-weight-bold text-dark" style="font-size: 18px;">{{product.title}}</a>
+            </div>
+            <span class="text-secondary">By <a href="/account/profile/{{product.user.id}}" target="_blank">{{product.user.full_name}}</a></span>
+            
+            <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; ">
+                <span class="text-secondary">{{product.description}}</span>
+            </div>
+            
+            <div>
+                <span>&#8377</span> 
+                <span class="text-dark font-weight-bold" style="font-size: 30px;">{{product.rent_rate}}</span>
+                <span>/</span>
+                <span class="text-dark font-weight-bold" style="font-size: 18px;">{{product.rent_type}}</span>
+            </div>
+            <div>
+                <span> &#8377</span> 
+                <span class="text-dark">{{product.deposit}} </span> 
+                <span class="text-secondary">Security Deposit</span>
+            </div>
+        </div>
+    </div>    
+    <hr>
+{% endfor %}
+

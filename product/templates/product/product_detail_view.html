@@ -29,18 +29,36 @@
 
     </div>
     <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 col-12">  <!--Details about the product -->
+
+        <!-- Show the messages here -->
         
+        {% for message in messages %}
+        <div>
+            <p style="color: red"> {{ message }}</p>
+        </div>     
+        {% endfor %}
+
+
         <div class="text-secondary"> <!--We are here-->
             <small>
                 <a href="/" class="text-secondary">Home</a>
                 <span>&gt;</span>
-                <a href="/{{product.category.category}}" class="text-secondary">{{product.category.category}}</a>
+                <a href="/category/{{product.category.id}}" class="text-secondary">{{product.category.category}}</a>
+            </small>
+            <small class="float-right"> <!-- Report about a product-->
+                <a href="#" class="text-secondary">Report</a>
             </small>
         </div>
 
+        
         <h3 class="font-weight-bold text-dark">{{product.title}}</h3>
+        {% if distance %}
+            <small>about <strong>{{distance}}km away</strong></small>
+        {% else %}
+            <!-- click here to get the distance from you -->
+        {% endif %}
         <hr>
-        <span>By <a href="">{{product.user.full_name}}</a></span>
+        <span>By <a href="/account/profile/{{product.user.id}}">{{product.user.full_name}}</a></span>
         
         <div> <!-- ₹ 1000/month Rent -->
             <span>&#8377</span> 
@@ -68,18 +86,41 @@
         <hr>
 
         <!-- Any Questions about the product -->
+        <span class="font-weight-bold">Question and Answers</span><br>
+                <!-- For asking any question to the owner -->
+        <form method="POST" action="/product/question/{{product.id}}" class="form-group">
+            {% csrf_token %}
+            <input type="text" class="form-control form-control-sm" name="question" placeholder="Ask any Question" required>
+            <button class="btn btn-secondary btn-sm form-control">submit</button>
+        </form>
+        
+                <!-- Display all the question and answers -->  
+        {% for question_and_answer in all_question_and_answer %}
+            <span>Q: </span><span class="text-secondary">{{question_and_answer.0.question}}</span>
+                        <!-- In case the person who asked the question want to delete it -->
+            {% if request.user == question_and_answer.0.who_is_asking %}
+                <a href="/product/question/delete/{{question_and_answer.0.id}}" onclick="return confirm('Are you Sure?')"> delete my question</a>
+            {% endif %}
+            <br>
+            {% if question_and_answer.1.answer %}
+            <span>A: </span><span class="text-secondary">{{question_and_answer.1.answer}}</span><br>
+            {% endif %}
+        {% endfor %}
+
     </div>
+
 
     <div class="col-xl-2 col-lg-2 col-md-6 col-sm-6 col-12">  <!-- buttons for Save in cart and Contact owner-->
         <div class="mt-5" style="position: sticky; top: 30px">  <!-- buttons for Save in cart and Contact owner-->
-            <a href="" class="btn btn-primary d-block">Contact Owner</a>        
+            <div id="id_owner_detail_div" class="d-block">
+                <span id="id_get_owner_detail" class="btn btn-primary d-block">Contact Owner</span>
+            </div>
             <br>
-            <a href="/cart/add/{{product.id}}" class="btn btn-primary d-block" >Add to Cart</a>        
+                <span id="id_ajax_for_add_to_cart" class="btn btn-primary d-block">Add to Cart</span>        
             <br>
             <a href="" class="btn btn-primary d-block" >Share</a>        
         </div>
     </div>
-
 </div>
 
 <!-- Smilar Products -->    
@@ -91,6 +132,7 @@
 
 {% block js %}
 <script>
+
     product_img = document.getElementById("product_img");
     function set_img(img) {
         product_img.src = img;
@@ -99,5 +141,53 @@
     function set_profile_img() {    
         product_img.src = "{{profile_img.product_profile_img.url}}";
     }
+
+
+    $("#id_get_owner_detail").click(function() {
+        {% if request.user.is_authenticated %}
+            $.post(
+                url = '{% url "get_owner_contact_detail" %}',
+                data = {
+                    owner               : "{{product.user.id}}",
+                    csrfmiddlewaretoken : "{{ csrf_token }}",
+                },
+                function (data) {  // success callback
+                    if("phone_number" in data) {
+                        $("#id_owner_detail_div").html("<span>Email: <strong>"+ data.email+"</strong></span><br><span>Phone Number: <strong>"+ data.phone_number+"</strong></span>")
+                    } else {
+                        $("#id_owner_detail_div").html("<span>Email: <strong>"+ data.email+"</strong></span>")
+                    }
+            });
+        {% else %}
+            var x = document.getElementById("snackbar");
+            x.innerHTML = "Please Login...";
+            x.className = "show";
+            setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+        {% endif %}
+    })
+
+
+    
+    $("#id_ajax_for_add_to_cart").click(function() {
+        {% if request.user.is_authenticated %}
+            // save in database    
+            url = "/cart/ajax/add/{{product.id}}"
+        {% else %}
+            // save in session
+            url = "/ajax/cart/add_in_session/{{product.id}}"
+        {% endif %}
+        
+        $.get(
+            url = url,
+            function(response) {
+                // call snackbar to show the response text
+                var x = document.getElementById("snackbar");
+                x.innerHTML = response.data;
+                x.className = "show";
+                setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+            }
+        )
+    });
+
 </script>
 {% endblock js %}

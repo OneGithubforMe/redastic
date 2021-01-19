@@ -1,0 +1,65 @@
+<!-- Feedback -->
+
+<div style="position: fixed; bottom: 30px; right: 20px; z-index: 1;">       <!--Give us the Feedback-->
+    <button type="button" class="btn btn-primary font-weight-bold" data-toggle="modal" data-target="#myModal">
+        Feedback
+    </button>
+    
+</div>
+
+<div class="container">     <!-- Feedback Popup-->
+    <!-- The Modal -->
+    <div class="modal fade" id="myModal">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h4 class="modal-title">Give us your valuable Suggestions</h4>
+            <button type="button" class="close" data-dismiss="modal" id="id_close_feedback_popup">&times;</button>
+          </div>
+          
+          <!-- Modal body -->
+          <div class="modal-body">
+            {% if not request.user.is_authenticated %}
+                <input type="email" placeholder="E-mail ID (optional)" class="form-control" id="id_feedback_email"> 
+                <br>
+            {% endif %}
+            <textarea class="form-control" placeholder="Your Feedback" id="id_user_feedback" required></textarea>
+          </div>
+          
+          <!-- Modal footer -->
+          <div class="modal-footer">
+            <button class="btn btn-success" id="id_send_feedback_using_ajax">Continue</button>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+</div>
+
+<script>
+  // send feedback without refreshing the page.
+  $("#id_send_feedback_using_ajax").click(function() {
+      
+    var feedback = ($("#id_user_feedback").val()).trim()
+      
+    if(document.getElementById("id_feedback_email")) {
+      var feedback_email = ($("#id_feedback_email").val()).trim()
+    }
+    
+    if(feedback) {
+      $.post(
+        url= "{% url 'user_feedback'%}",
+        data = {
+          feedback_email  : feedback_email,
+          feedback        : feedback,
+          csrfmiddlewaretoken : '{{ csrf_token }}',
+        },
+        success = function(){
+          $("#id_user_feedback").val('');
+          $("#id_close_feedback_popup").click();
+        })
+      }
+  });
+</script>

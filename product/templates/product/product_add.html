@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
 
 
 {% block head %}
@@ -39,27 +38,36 @@
         
             <div class="border p-4">
                 <h3>Add up to 6 Images</h3>
-                <p>* min. 2 required</p>
+                <p>* min. 1 required</p>
                 {{profile_img_form.as_p}}
                 {% for img_form in img_forms %}
                     {{ img_form.as_p }}
                 {% endfor %}
             </div>
+            <br>
+            <div class="border p-4">
+                <h4>Produt Available Nearby</h4>
+                <div class="d-none">
+                    {{ available_location_form.as_p }}
+                </div>
+                <div id="map" class="my-2" style="width: 100%; height:300px"></div>
+                
+                <span class="btn btn-warning" onclick="getLocation()">Get Your Current Location</span>
+                <!--
+                <span class="btn btn-primary" onclick="on_click()">Click to Load Google map to Indicate Location</span>
+                -->
+                <p>
+                    <small>Indicate the product location where you want it to be available for rent.</small>
+                    <small>Product available location is used to show your product in the nearby areas.</small>
+                </p>
+            </div>
             
-            <h3>Produt Available Nearby</h3>
-            {{ available_location_form.as_p }}
-        
-            <span onclick="getLocation()" class="btn btn-warning">Get Your Current Location</span>
             <br><br>
             <button class="btn btn-success">Publish Product</button>
-            <button formaction="draft/" class="btn btn-secondary">Save as Draft</button>
+            <button formaction="draft/" class="btn btn-secondary">Save as Private</button>
             <a href="/"  class="btn btn-secondary">Cancel</a>
         </form>
         <br><br>
-                
-
-    
-
     </div>
 </div>
 
@@ -68,20 +76,197 @@
 
 
 {% block js %}
-<script>
-var longitude = document.getElementById("id_longitude");
-var latitude = document.getElementById("id_latitude");
-function getLocation() {
-    if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(showPosition);
-    } else { 
-    x.innerHTML = "Geolocation is not supported by this browser.";
-    }
-}
+<script>    
+    var map, current_location;
+    var markers = [];
+    var longitude = document.getElementById("id_longitude");
+    var latitude = document.getElementById("id_latitude");
 
-function showPosition(position) {
-    longitude.value = position.coords.latitude;
-    latitude.value = position.coords.longitude;
-}
-</script> 
+    function getLocation() {
+        addMarker(current_location);
+        map.setCenter(current_location);
+        longitude.value = current_location.lng;
+        latitude.value = current_location.lat;
+    }
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -34.397, lng: 150.644},
+            zoom: 12
+        });
+  
+        // Try HTML5 geolocation.
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                current_location = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+                };
+                // Adds a marker at the center of the map.
+                addMarker(current_location);
+                
+                //marker.setPosition(current_location);
+                map.setCenter(current_location);
+                
+                //set the initial values to the current location for latitude and longitude input 
+                longitude.value = current_location.lng;
+                latitude.value = current_location.lat;  
+
+            }, showError);
+        } else {
+            alert("Geolocation is not supported by this browser.");
+/*
+            //using the IP
+            response = ipLookUp();
+            alert(response);
+*/
+        }
+
+        map.addListener('click', function(event) {
+        addMarker(event.latLng);
+        //show the latitude and longitude values in the input field
+        latitude.value = event.latLng.lat();
+        longitude.value = event.latLng.lng();
+    });
+
+    }
+
+    // Adds a marker to the map and push to the array.
+    function addMarker(location) {
+        var marker = new google.maps.Marker({
+            position: location,
+            map: map
+        });
+        deleteMarkers();      
+        markers.push(marker);
+    }
+
+    // Sets the map on all markers in the array.
+    function setMapOnAll(map) {
+        for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(map);
+        }
+    }
+
+    // Removes the markers from the map, but keeps them in the array.
+    function clearMarkers() {
+        setMapOnAll(null);
+    }
+
+    // Shows any markers currently in the array.
+    function showMarkers() {
+        setMapOnAll(map);
+    }
+
+    // Deletes all markers in the array by removing references to them.
+    function deleteMarkers() {
+        clearMarkers();
+        markers = [];
+    }
+
+
+
+        
+function showError(error) {
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            alert("User denied the request for Geolocation. Please Refresh the Page and allow location Access.");
+            break;
+        case error.POSITION_UNAVAILABLE:
+            alert("Location information is unavailable.");
+            break;
+        case error.TIMEOUT:
+            alert("The request to get user location timed out.");
+            break;
+        case error.UNKNOWN_ERROR:
+            alert("An unknown error occurred.");
+            break;
+    }
+    }
+
+
+// getting location cordinates using ip address
+function ipLookUp () {
+    $.ajax('http://ip-api.com/json').then(
+        function success(response) {
+            return response;
+          },
+  
+        function fail(data, status) {
+            console.log('Request failed.  Returned status of',status);
+        }
+    );
+  }
+
+
+/*
+
+        current_location = {lat: parseFloat(latitude.value), lng: parseFloat(longitude.value)};
+
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: current_location,
+            zoom: 12,
+        });
+
+        // This event listener will call addMarker() when the map is clicked.
+        map.addListener('click', function(event) {
+            addMarker(event.latLng);
+            //show the latitude and longitude values in the input field
+            latitude.value = event.latLng.lat();
+            longitude.value = event.latLng.lng();
+        });
+
+        // Adds a marker at the center of the map.
+        addMarker(current_location);
+    }
+
+    // Adds a marker to the map and push to the array.
+    function addMarker(location) {
+        var marker = new google.maps.Marker({
+            position: location,
+            map: map
+        });
+        deleteMarkers();      
+        markers.push(marker);
+    }
+
+    // Sets the map on all markers in the array.
+    function setMapOnAll(map) {
+        for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(map);
+        }
+    }
+
+    // Removes the markers from the map, but keeps them in the array.
+    function clearMarkers() {
+        setMapOnAll(null);
+    }
+
+    // Shows any markers currently in the array.
+    function showMarkers() {
+        setMapOnAll(map);
+    }
+
+    // Deletes all markers in the array by removing references to them.
+    function deleteMarkers() {
+        clearMarkers();
+        markers = [];
+    }
+
+    //For loading the Google map js API
+    function on_click() {
+        var script = document.createElement("script");
+        script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBxrqBpLpGDlrkG9JpefNJkKE2gkI_iu0M&callback=initMap"; 
+        script.setAttribute("defer", "True");
+        script.setAttribute("async", "True"); 
+        document.getElementsByTagName("head")[0].appendChild(script);
+        return false;
+    }
+*/
+</script>
+
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBxrqBpLpGDlrkG9JpefNJkKE2gkI_iu0M&callback=initMap">
+    </script>
+
 {% endblock js %}

@@ -2,57 +2,64 @@
 
 {% block head %}
     <title>Search Page</title>
+
+    <style>
+        @media (min-width: 768px) {
+            .collapse.dont-collapse-sm {
+                display: block;
+                height: auto !important;
+                visibility: visible;
+            }
+        }
+    </style>
+
 {% endblock head %}
 
 
 {% block content %}
+
+
+
 <div class="body mt-3">
     <div class="row">
         <div class="col-xl-2 col-lg-2 col-md-2 col-sm-12 col-12">
-            <div class="border-right">
+
+            <button class="btn btn-outline-dark d-block d-lg-none d-xl-none w-75" type="button" data-toggle="collapse" data-target="#id_collapse_filter" aria-expanded="false" aria-controls="id_collapse_filter">
+                Filters <!--hidden visible-xs-->
+              </button>
+
+            <div class="border-right collapse dont-collapse-sm" id="id_collapse_filter">      <!-- All The Filters-->
                 <div class="list-of-applied-filters">
-                    <a href="/search/?search={{search}}">Remove All Filters</a>
+                    <a href="/search/?search={{search}}" id="no_filter">Remove All Filters</a>
                 </div>    
                 <br>
 
-                <div class="">      <!--category filter-->
+                <div class="category_filter">      <!--category filter-->
                     <span class="font-weight-bold">Category</span>
                     {% for nav in navbar %}
-                    <form action="" method="get">
-                        <input type="hidden" value="{{search}}" name="search">
-                        <input type="hidden" value="{{nav}}" name="category">
-                        <button class="btn btn-link text-secondary py-0">{{nav}}</button>
-                    </form>
+                        <label class='text-secondary d-block my-0'><input type="checkbox" class="class_filter_all class_filter_category " value="{{nav}}"> {{nav}}</label>
                     {% endfor %}
                 </div>
                 <br>
-
-                <div class="">      <!--distance filter-->
-                    <span class="font-weight-bold ">Distance</span>
-                    <form action="" method="get">
-                        <input type="number" class="" value="{{distance}}" name="distance" placeholder="Within 5 Km" style="width: 90%">
-                        <input type="hidden" value="{{search}}" name="search">
-                        <input type="hidden" value="{{category}}" name="category">
-                        <input type="hidden" id ="id_longitude" name = "longitude">
-                        <input type="hidden" id ="id_latitude" name = "latitude">
-                    </form>
+                
+                <div class="rent_type_filter">      <!--Rent type Filter-->
+                    <span class="font-weight-bold">Rent Type</span><br>
+                    <label class='text-secondary my-0'><input type="checkbox" class="class_filter_all class_rent_type_filter" value="day"> day</label>
+                    <br>
+                    <label class='text-secondary my-0'><input type="checkbox" class="class_filter_all class_rent_type_filter" value="week"> week</label>
+                    <br>
+                    <label class='text-secondary my-0'><input type="checkbox" class="class_filter_all class_rent_type_filter" value="month"> month</label>
+                    <br>
+                    <label class='text-secondary my-0'><input type="checkbox" class="class_filter_all class_rent_type_filter" value="year"> year</label>
                 </div>
                 <br>
 
-                <div class="">      <!--price Filter-->
-                    <span class="font-weight-bold">Price</span>
-                    <form action="" method="get">
-                        <input type="number" placeholder="min Rs" class="mb-1" style="width: 90%">
-                        <input type="number" placeholder="max Rs" style="width: 90%">
-                    </form>
-                </div>
-                <br>
-
-                <div class="deposite-filter">
-                    <span class="font-weight-bold">Deposite</span>
-                    <form action="" method="get">
-                        <input type="number" placeholder="min" class="mb-1" style="width: 90%">
-                        <input type="number" placeholder="max" style="width: 90%">
+                <div class="deposit-filter">        <!-- Deposit filter -->
+                    <span class="font-weight-bold">Deposit</span>
+                    <form id="id_filter_deposit_form">
+                        <input type="number" id="id_filter_min_deposit" placeholder="min Rs" class="w-75" min="1">
+                        <input type="number" id="id_filter_max_deposit" placeholder="max Rs" class="my-1 w-75" min="1">
+                        <button class="btn btn-secondary d-block w-75">Apply</button>
                     </form>
                 </div>
 
@@ -60,98 +67,39 @@
         </div>
 
 
-        <div class="col-xl-9 col-lg-9 col-md-9 col-sm-12 col-12">  
-            <div class="number-of-products-serach-result">
-                {% if not number_of_products %}
-                    <p class="text-secondary">No products for the search - "{{search}}"</p>
-                {% else %}
-                    <p class="text-secondary">About {{number_of_products}} products found</p>
-                {% endif %}
-            </div>
-            
-            <div class="sort-by">
-                <ul class="nav border-bottom py-0">
-                    <li class="nav-item py-0">
-                        <span class="nav-link disabled p-0 text-dark">Sort By:</span>
-                    </li>
-                    <li class="nav-item py-0">
-                        <a href="" class="nav-link py-0 text-secondary">Relevance</a>
-                    </li>
-                    <li class="nav-item py-0">
-                        <a href="" class="nav-link py-0 text-secondary">Price - Low to High</a>
-                    </li>    
-                    <li class="nav-item py-0">
-                        <a href="" class="nav-link py-0 text-secondary">Price - High to Low</a>
-                    </li>
-                    <li class="nav-item py-0">
-                        <a href="" class="nav-link py-0 text-secondary">Nearest First</a>
-                    </li> 
-                    <li class="nav-item py-0">
-                        <a href="" class="nav-link py-0 text-secondary">Newest First</a>
-                    </li>
-                </ul>
-            </div>
-            
 
-<div class="pt-3">          <!--showing search -results-->
-    {% for product, profile_img in products %}
-        <div class="row">
-            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-4 col-4">
-                <div>
-                    <a href="/product/view/{{product.id}}">
-                        <img src="{{profile_img.product_profile_img.url}}" alt="product-profile-image" class="mx-auto my-auto d-block mw-100" height="150">
-                    </a>                
-                </div>
-            </div>
-            <div class="col-xl-8 col-lg-8 col-md-8 col-sm-8 col-8">
-                <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; ">
-                    <a href="/product/view/{{product.id}}" class="font-weight-bold text-dark" style="font-size: 18px;">{{product.title}}</a>
-                </div>
-                <span class="text-secondary">By <a href="/account/profile/{{product.user.id}}">{{product.user.full_name}}</a></span>
-                
-                <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; ">
-                    <span class="text-secondary">{{product.description}}</span>
-                </div>
-                
-                <div>
-                    <span>&#8377</span> 
-                    <span class="text-dark font-weight-bold" style="font-size: 30px;">{{product.rent_rate}}</span>
-                    <span>/</span>
-                    <span class="text-dark font-weight-bold" style="font-size: 18px;">{{product.rent_type}}</span>
-                </div>
-                <div>
-                    <span> &#8377</span> 
-                    <span class="text-dark">{{product.deposit}} </span> 
-                    <span class="text-secondary">Security Deposite</span>
-                </div>
-                <br>
-                <a href="/cart/add/{{product.id}}">Save in Cart</a>
-            </div>
-        </div>    
-        <hr>
-    {% endfor %}
-</div>            
+<div class="col-xl-9 col-lg-9 col-md-9 col-sm-12 col-12">  
+        <!-- Show the messages here -->
+    <div>
+        {% for message in messages %}
+            <p style="color: red"> {{ message }}</p>
+        {% endfor %}
+    </div>
 
+    <div class="sort-by">   <!-- Sort-By -->
+        <ul class="nav border-bottom py-0">
+            <li class="nav-item py-0">
+                <span class="btn disabled py-0 text-dark">Sort By:</span>
+            </li>
+            <li class="nav-item py-0">
+                <span class="class_sort_by btn btn-link py-0 text-secondary font-weight-bold">Near-By First</span>
+            </li>
+            <li class="nav-item py-0">
+                <span class="class_sort_by btn btn-link py-0 text-secondary">Date Published</span>
+            </li>
+        </ul>
+    </div>
+    
+<div id="id_filter_result" class="pt-1">        <!-- Ajax request will replace the contenet within this div-->
+    
+    <!-- show the loading icon-->
+    <div class="spinner-border d-block mx-auto"></div>
 
+</div>  
 
-        </div>
+    </div>
     </div>
 </div>
-    
-    
-    
-    
-
-
-
-
-
-
-
-
-
-
-
 
 
 {% endblock content %}
@@ -160,19 +108,191 @@
 
 {% block js %}
 <script>
-    var longitude = document.getElementById("id_longitude");
-    var latitude = document.getElementById("id_latitude");
-    function getLocation() {
-        if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition);
-        } else { 
-        x.innerHTML = "Geolocation is not supported by this browser.";
+var sort_by = "Near-By First";
+var lat, lng;
+
+$(document).ready(function() {
+    // check if the location session is available or not
+    {% if not request.session.location %}
+        set_location_in_session();
+    {% else %}
+        all_search_filter();
+    {% endif %}
+});
+
+
+function set_location_in_session(){
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            lat = position.coords.latitude;
+            lng = position.coords.longitude;
+            send_ajax_for_location_session();
+    }, showError);
+    } else {
+        //alert("Geolocation is not supported by this browser.");
+        get_location_with_ipinfo();
+    } 
+}
+
+
+function get_location_with_ipinfo() {
+    $.get("https://ipinfo.io?token=8377350a09a701", function(response) {
+      var location = response.loc;
+      location = location.split(",");
+      lat = parseFloat(location[0]);
+      lng = parseFloat(location[1]);
+      send_ajax_for_location_session()
+    }, "jsonp")
+}
+  
+
+
+function send_ajax_for_location_session(){
+    $.ajax({
+        type: 'GET',
+        url: "{% url 'set_location_in_session'%}",
+        async: true,
+        data: {
+            latitude: lat,
+            longitude: lng,
+        },
+        success: function () {
+             all_search_filter();          
+        },
+        error: function() {
+            alert("There is an error")
+        },         
+    });
+}
+
+
+
+
+$(".class_filter_all").click(function() {
+    all_search_filter();
+});
+
+$("#id_filter_deposit_form").submit(function() {
+    var min_deposit = $("#id_filter_min_deposit").val()
+    var max_deposit = $("#id_filter_max_deposit").val()
+
+    if(min_deposit != "" && max_deposit != "") {
+        min_deposit = parseInt(min_deposit)
+        max_deposit = parseInt(max_deposit)
+        if(min_deposit > max_deposit) {
+            alert("value error")
+            event.preventDefault();
+            return false;
         }
     }
-    
-    function showPosition(position) {
-        longitude.value = position.coords.latitude;
-        latitude.value = position.coords.longitude;
+    else if(min_deposit == "" && max_deposit == "") {
+        alert("empty")
+        event.preventDefault();
+        return false;
     }
+    
+    
+    // perform the search if the 
+    all_search_filter();
+
+    event.preventDefault();
+    return false;
+});
+
+
+
+function all_search_filter() {
+    // get the value of category filter
+    var all_category_filter = document.getElementsByClassName('class_filter_category')
+    var apply_these_category_filter = "";
+    var total_number_of_checkbox = $('input:checkbox.class_filter_category:checked').length
+    var i, number_of_added_checkbox = 1;
+    for(i=0; i<all_category_filter.length; i++) {
+        if (all_category_filter[i].checked) {
+            if(number_of_added_checkbox == total_number_of_checkbox) {
+                apply_these_category_filter += all_category_filter[i].value;
+            } else {
+                apply_these_category_filter += all_category_filter[i].value + ",";
+                number_of_added_checkbox++;
+            }
+        }
+    }
+
+    // get the values from rent_type values
+    var all_rent_type_filter = document.getElementsByClassName('class_rent_type_filter')
+    var apply_these_rent_type_filter = "";
+    var total_number_of_checkbox = $('input:checkbox.class_rent_type_filter:checked').length
+    var i, number_of_added_checkbox = 1;
+    for(i=0; i<all_rent_type_filter.length; i++) {
+        if (all_rent_type_filter[i].checked) {
+            if(number_of_added_checkbox == total_number_of_checkbox) {
+                apply_these_rent_type_filter += all_rent_type_filter[i].value;
+            } else {
+                apply_these_rent_type_filter += all_rent_type_filter[i].value + ",";
+                number_of_added_checkbox++;
+            }
+        }
+    }
+
+    // get the values for deposit 
+    var min_deposit = $("#id_filter_min_deposit").val()
+    var max_deposit = $("#id_filter_max_deposit").val()
+    
+    // send the value as ajax
+    $("#id_filter_result").load(
+        url = "{% url 'all_filter_in_serach' %}", 
+        data = {
+            search                          : "{{search}}",
+            apply_these_rent_type_filter    : apply_these_rent_type_filter,
+            apply_these_category_filter     : apply_these_category_filter,
+            min_deposit                     : min_deposit,
+            max_deposit                     : max_deposit,
+            sort_by                         : sort_by,
+            csrfmiddlewaretoken             : '{{ csrf_token }}',
+        },
+        //call back function
+        function(responseTxt, statusTxt, xhr){
+            if(statusTxt == "error")
+            alert("Error: " + xhr.status + ": " + xhr.statusText);
+    });
+}
+
+
+
+$(".class_sort_by").click(function() {
+    if( ! this.classList.contains("font-weight-bold")) {
+        sort_by = this.innerHTML,
+
+        all_search_filter();
+
+        // remove the font-weight-bold class in other class elements
+        $(".class_sort_by").removeClass("font-weight-bold");
+        //Now add only in the current element
+        this.classList.add("font-weight-bold");
+    }
+});
+
+
+
+// show error related to getting geolocation
+function showError(error) {
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            get_location_with_ipinfo();
+            //alert("User denied the request for Geolocation. Please Refresh the Page and allow location Access.");
+            break;
+        case error.POSITION_UNAVAILABLE:
+            alert("Location information is unavailable.");
+            break;
+        case error.TIMEOUT:
+            alert("The request to get user location timed out.");
+            break;
+        case error.UNKNOWN_ERROR:
+            alert("An unknown error occurred.");
+            break;
+    }
+}
+
+
 </script>
 {% endblock js %}

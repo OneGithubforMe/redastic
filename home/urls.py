@@ -4,7 +4,6 @@ from . import views
 
 urlpatterns = [
     path('', views.index),
-    path('feedback', views.feedback),
-    # path('<id:category>', views.category),
-    # path('/sort', views.category),
+    path('ajax/load_index_page_content', views.load_index_page_content, name="load_index_page_content"),
+    #path('feedback', views.feedback),    
 ]
