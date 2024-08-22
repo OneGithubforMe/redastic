@@ -57,7 +57,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'myproject.urls'
+ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
     {
@@ -75,14 +75,14 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'myproject.wsgi.application'
+WSGI_APPLICATION = 'core.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 
-if os.getenv('SETUP_POSTGRESQL_DB', None):
+if os.getenv('SETUP_POSTGRESQL_DB', None) == 'True':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
