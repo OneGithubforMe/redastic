@@ -155,6 +155,8 @@ if os.getenv('USE_S3') == 'True':
     DEFAULT_FILE_STORAGE = 'myproject.storages.MediaStore'
     STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
     STATIC_ROOT = ''  # Typically empty for S3-based setups
+    PUBLIC_MEDIA_LOCATION = 'media'
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/'
 else:
     STATIC_URL = '/staticfiles/'
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

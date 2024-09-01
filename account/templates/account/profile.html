@@ -16,7 +16,7 @@
     <div class="profile-information border p-4 mx-auto my-5">
         <div class="row">
             <div class="col-xl-4">  <!-- user Prfo-->
-                <img src="{{media_url}}{{user_info.profile_picture}}" alt="Profile Picture" class="rounded-circle" height="200" width="200">
+                <img src="{{media_url}}{{user_info.profile_picture.url}}" alt="Profile Picture" class="rounded-circle" height="200" width="200">
             </div>
             <div class="col-xl-8">
                 <h4 class="font-weight-bold">{{request.user.full_name}}</h4>
